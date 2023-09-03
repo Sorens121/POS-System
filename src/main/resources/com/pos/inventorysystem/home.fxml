@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Font?>
+
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1200.0" style="-fx-background-color: #D3D9DF;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pos.inventorysystem.controllers.HomeController">
+   <left>
+      <VBox prefHeight="736.0" prefWidth="250.0" style="-fx-border-color: #ffffff;" BorderPane.alignment="CENTER">
+         <children>
+            <Button fx:id="customerBtn" alignment="CENTER" mnemonicParsing="false" onAction="#OnCustomerClick" prefHeight="40.0" prefWidth="160.0" text="Customer">
+               <VBox.margin>
+                  <Insets bottom="30.0" left="45.0" top="100.0" />
+               </VBox.margin>
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Button>
+            <Button fx:id="suppllerBtn" alignment="CENTER" layoutX="55.0" layoutY="110.0" mnemonicParsing="false" onAction="#OnSupplierClick" prefHeight="40.0" prefWidth="160.0" text="Suppliers">
+               <VBox.margin>
+                  <Insets bottom="30.0" left="45.0" />
+               </VBox.margin>
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Button>
+            <Button fx:id="employeeBtn" alignment="CENTER" layoutX="10.0" layoutY="160.0" mnemonicParsing="false" onAction="#OnEmployeeClick" prefHeight="40.0" prefWidth="160.0" text="Employee">
+               <VBox.margin>
+                  <Insets bottom="30.0" left="45.0" />
+               </VBox.margin>
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Button>
+            <Button fx:id="productBtn" alignment="CENTER" layoutX="10.0" layoutY="200.0" mnemonicParsing="false" onAction="#OnProductClick" prefHeight="40.0" prefWidth="160.0" text="Product">
+               <VBox.margin>
+                  <Insets bottom="30.0" left="45.0" />
+               </VBox.margin>
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Button>
+            <Button fx:id="salesBtn" alignment="CENTER" layoutX="10.0" layoutY="240.0" mnemonicParsing="false" onAction="#OnSalesClick" prefHeight="40.0" prefWidth="160.0" text="Sales">
+               <VBox.margin>
+                  <Insets bottom="30.0" left="45.0" />
+               </VBox.margin>
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Button>
+            <Button fx:id="invoiceBtn" alignment="CENTER" layoutX="10.0" layoutY="280.0" mnemonicParsing="false" onAction="#OnInvoiceClick" prefHeight="40.0" prefWidth="160.0" text="Invoice">
+               <VBox.margin>
+                  <Insets bottom="30.0" left="45.0" />
+               </VBox.margin>
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Button>
+            <Button fx:id="reportsBtn" alignment="CENTER" layoutX="10.0" layoutY="320.0" mnemonicParsing="false" onAction="#OnReportsClick" prefHeight="40.0" prefWidth="160.0" text="Reports">
+               <VBox.margin>
+                  <Insets bottom="30.0" left="45.0" />
+               </VBox.margin>
+               <font>
+                  <Font size="15.0" />
+               </font>
+            </Button>
+         </children>
+         <BorderPane.margin>
+            <Insets bottom="20.0" left="20.0" top="30.0" />
+         </BorderPane.margin>
+      </VBox>
+   </left>
+   <top>
+      <MenuBar BorderPane.alignment="CENTER">
+        <menus>
+          <Menu mnemonicParsing="false" text="File">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Close" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Edit">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Delete" />
+            </items>
+          </Menu>
+          <Menu mnemonicParsing="false" text="Help">
+            <items>
+              <MenuItem mnemonicParsing="false" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+   </top>
+   <center>
+      <StackPane fx:id="contentArea" prefHeight="775.0" prefWidth="911.0" BorderPane.alignment="CENTER">
+         <children>
+            <Pane prefHeight="680.0" prefWidth="890.0" style="-fx-border-color: #ffffff;">
+               <StackPane.margin>
+                  <Insets bottom="20.0" left="20.0" right="20.0" top="30.0" />
+               </StackPane.margin>
+            </Pane>
+         </children></StackPane>
+   </center>
+</BorderPane>

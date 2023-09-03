@@ -1,0 +1,12 @@
+.idea
+.mvn
+/target
+mvnw.cmd
+mvnw
+POSInventorySystem.iml
+pom.xml
+**/db
+**/demo/layouts
+**/text
+**/examples
+

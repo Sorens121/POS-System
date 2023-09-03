@@ -1,0 +1,30 @@
+package com.pos.inventorysystem.utils;
+
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Random;
+
+public class GenericUtils {
+    private GenericUtils() {
+        // This constructor is intentionally left empty
+    }
+
+    public static String GenerateBarcode() {
+        Random random = new Random();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyddss");
+        String originalString = LocalDateTime.now().format(formatter);
+        long randomNumber = generateRandomNumber(random);
+        int splitIndex = 4;
+        String prefix = originalString.substring(0, splitIndex);
+        String suffix = originalString.substring(splitIndex);
+
+        return prefix + randomNumber + suffix;
+    }
+
+    private static long generateRandomNumber(Random random) {
+        long lowerBound = 100000L;
+        long upperBound = 999999L;
+
+        return lowerBound + (long) (random.nextDouble() * (upperBound - lowerBound));
+    }
+}
