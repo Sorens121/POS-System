@@ -97,7 +97,7 @@
                   <Font size="14.0" />
                </font>
             </Label>
-            <TextField fx:id="supplier_id" layoutX="128.0" layoutY="161.0" prefHeight="25.0" prefWidth="332.0" />
+            <TextField fx:id="supplierId_field" layoutX="128.0" layoutY="161.0" prefHeight="25.0" prefWidth="332.0" />
             <Button fx:id="barcodeBtn" layoutX="127.0" layoutY="199.0" mnemonicParsing="false" onAction="#generateBarcode" prefHeight="30.0" prefWidth="111.0" text="Generate Barcode" />
          </children>
       </Pane>
@@ -108,7 +108,7 @@
             <TableColumn fx:id="barcode" minWidth="0.0" prefWidth="156.0" text="Barcode" />
             <TableColumn fx:id="price" prefWidth="109.0" text="Price" />
             <TableColumn fx:id="quantity" prefWidth="84.0" text="Quantity" />
-            <TableColumn fx:id="supplierId" prefWidth="214.0" text="SID" />
+            <TableColumn fx:id="supplier_id" prefWidth="214.0" text="Supplier ID" />
         </columns>
          <padding>
             <Insets bottom="10.0" right="10.0" />
