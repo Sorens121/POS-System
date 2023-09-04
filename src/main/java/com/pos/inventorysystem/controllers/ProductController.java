@@ -39,7 +39,7 @@ public class ProductController {
     private TextField userInput;
 
     @FXML
-    private TextField supplier_id;
+    private TextField supplierId_field;
 
     @FXML
     private TableColumn<Product, String> pid;
@@ -48,7 +48,7 @@ public class ProductController {
     private TableView<Product> product_table;
 
     @FXML
-    private TableColumn<Product, String> supplierId;
+    private TableColumn<Product, String> supplier_id;
 
     @FXML
     private TableColumn<Product, String> product_name;
@@ -97,9 +97,12 @@ public class ProductController {
         barcode.setCellValueFactory(cellData -> cellData.getValue().getBarcodeProperty());
         price.setCellValueFactory(cellData -> cellData.getValue().getPriceProperty().asObject());
         quantity.setCellValueFactory(cellData -> cellData.getValue().getQuantityProperty().asObject());
-        supplierId.setCellValueFactory(cellData -> cellData.getValue().getSupplierIdProperty());
+        supplier_id.setCellValueFactory(cellData -> cellData.getValue().getSupplierIdProperty());
+
         products = ProductHelper.getAllRecords();
         populateTable(products);
+
+        System.out.print("Table data: " + product_name + barcode + price + quantity + supplier_id);
 
         //display details in their respective fields when items are selected from the table
         product_table.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -108,8 +111,10 @@ public class ProductController {
                 barcode_field.setText(newValue.getBarcode());
                 price_field.setText(String.valueOf(newValue.getPrice()));
                 quantity_field.setText(String.valueOf(newValue.getQuantity()));
-                supplier_id.setText(newValue.getSupplierId());
+                supplierId_field.setText(newValue.getSupplierId());
             }
+
+            System.out.println("On table row selection: " + p_name + barcode_field + price_field + quantity_field + supplierId_field);
         });
     }
 
@@ -123,7 +128,7 @@ public class ProductController {
         String barcode = barcode_field.getText();
         int price = Integer.parseInt(price_field.getText());
         int quantity = Integer.parseInt(quantity_field.getText());
-        String supplierId = supplier_id.getText();
+        String supplierId = supplierId_field.getText();
 
         try {
             if(!name.isEmpty() && !barcode.isEmpty()) {
@@ -157,7 +162,7 @@ public class ProductController {
                 barcode_field.setText(resultSet.getString("barcode"));
                 price_field.setText(String.valueOf(resultSet.getInt("price")));
                 quantity_field.setText(String.valueOf(resultSet.getInt("quantity")));
-                supplier_id.setText(resultSet.getString("supplier_id"));
+                supplierId_field.setText(resultSet.getString("supplier_id"));
             } else if(!resultSet.isBeforeFirst()) {
                 dialogBoxUtility.showDialogBox(3);
             }
@@ -175,42 +180,43 @@ public class ProductController {
         String barcode = barcode_field.getText();
         int price = Integer.parseInt(price_field.getText());
         int quantity = Integer.parseInt(quantity_field.getText());
-        String supplierId = supplier_id.getText();
+        String supplierId = supplierId_field.getText();
 
         System.out.println("Values: " + name + " " + barcode + " " + price + " " + quantity + " " + supplierId);
 
         // updateProduct(String barcode, String name, int price, int quantity, String supplierId)
         try{
             int result = 0;
-            if(!name.isEmpty() && name !=null){ // UPDATING ONLY PRODUCT NAME
-                result = actions.updateProduct(barcode, name, 0, 0, null);
-            } else if(price != 0) { // UPDATING ONLY PRICE
-                result = actions.updateProduct(barcode, "", price, 0, null);
-            } else if(quantity != 0) { // UPDATING ONLY QUANTITY
-                result = actions.updateProduct(barcode, "", 0, quantity, null);
-            } else if(!supplierId.isEmpty() && supplierId != null){ //UPDATING ONLY SELLER ID
-                result = actions.updateProduct(barcode, "", 0, 0, supplierId);
-            } else if((!name.isEmpty() && name != null) && price != 0){ //UPDATING NAME AND PRICE
-                result = actions.updateProduct(barcode, "", price, 0, null);
-            } else if((!name.isEmpty() && name != null) && quantity != 0){ //UPDATING NAME AND QUANTITY
-                result = actions.updateProduct(barcode, name, 0, quantity, null);
-            } else if((!name.isEmpty() && name != null) && (!supplierId.isEmpty() && supplierId != null)){ //UPDATING NAME AND SELLER ID
-                result = actions.updateProduct(barcode, name, 0, 0, supplierId);
-            } else if(price != 0 && quantity != 0 ){ //UPDATING PRICE AND QUANTITY
-                result = actions.updateProduct(barcode, "", price, quantity, null);
-            } else if((!supplierId.isEmpty() && supplierId != null) && price != 0){ //UPDATING PRICE AND SELLER ID
-                result = actions.updateProduct(barcode, "", price, 0, supplierId);
-            } else if(((!supplierId.isEmpty() && supplierId != null) && quantity != 0)){ //UPDATING QUANTITY AND SELLER ID
-                result = actions.updateProduct(barcode, "", 0, quantity, supplierId);
-            } else if ((!name.isEmpty() && name != null) && price != 0 && quantity != 0) { //UPDATING NAME PRICE AND QUANTITY
-                result = actions.updateProduct(barcode, name, price, quantity, null);
-            }else if ((!name.isEmpty() && name != null) && price != 0 && (!supplierId.isEmpty() && supplierId != null)) { //UPDATING NAME PRICE AND SELLER ID
-                result = actions.updateProduct(barcode, name, price, 0, supplierId);
-            }else if ((!supplierId.isEmpty() && supplierId != null) && price != 0 && quantity != 0) { //UPDATING PRICE QUANTITY AND SELLER ID
-                result = actions.updateProduct(barcode, "", price, quantity, supplierId);
-            }else if ((!name.isEmpty() && name != null) && (!supplierId.isEmpty() && supplierId != null) && price != 0 && quantity != 0) { //UPDATING NAME PRICE QUANTITY AND SELLER ID
-                result = actions.updateProduct(barcode, name, price, quantity, supplierId);
-            }
+//            if(!name.isEmpty() && name !=null){ // UPDATING ONLY PRODUCT NAME
+//                result = actions.updateProduct(barcode, name, 0, 0, null);
+//            } else if(price != 0) { // UPDATING ONLY PRICE
+//                result = actions.updateProduct(barcode, "", price, 0, null);
+//            } else if(quantity != 0) { // UPDATING ONLY QUANTITY
+//                result = actions.updateProduct(barcode, "", 0, quantity, null);
+//            } else if(!supplierId.isEmpty() && supplierId != null){ //UPDATING ONLY SELLER ID
+//                result = actions.updateProduct(barcode, "", 0, 0, supplierId);
+//            } else if((!name.isEmpty() && name != null) && price != 0){ //UPDATING NAME AND PRICE
+//                result = actions.updateProduct(barcode, "", price, 0, null);
+//            } else if((!name.isEmpty() && name != null) && quantity != 0){ //UPDATING NAME AND QUANTITY
+//                result = actions.updateProduct(barcode, name, 0, quantity, null);
+//            } else if((!name.isEmpty() && name != null) && (!supplierId.isEmpty() && supplierId != null)){ //UPDATING NAME AND SELLER ID
+//                result = actions.updateProduct(barcode, name, 0, 0, supplierId);
+//            } else if(price != 0 && quantity != 0 ){ //UPDATING PRICE AND QUANTITY
+//                result = actions.updateProduct(barcode, "", price, quantity, null);
+//            } else if((!supplierId.isEmpty() && supplierId != null) && price != 0){ //UPDATING PRICE AND SELLER ID
+//                result = actions.updateProduct(barcode, "", price, 0, supplierId);
+//            } else if(((!supplierId.isEmpty() && supplierId != null) && quantity != 0)){ //UPDATING QUANTITY AND SELLER ID
+//                result = actions.updateProduct(barcode, "", 0, quantity, supplierId);
+//            } else if ((!name.isEmpty() && name != null) && price != 0 && quantity != 0) { //UPDATING NAME PRICE AND QUANTITY
+//                result = actions.updateProduct(barcode, name, price, quantity, null);
+//            }else if ((!name.isEmpty() && name != null) && price != 0 && (!supplierId.isEmpty() && supplierId != null)) { //UPDATING NAME PRICE AND SELLER ID
+//                result = actions.updateProduct(barcode, name, price, 0, supplierId);
+//            }else if ((!supplierId.isEmpty() && supplierId != null) && price != 0 && quantity != 0) { //UPDATING PRICE QUANTITY AND SELLER ID
+//                result = actions.updateProduct(barcode, "", price, quantity, supplierId);
+//            }else if ((!name.isEmpty() && name != null) && (!supplierId.isEmpty() && supplierId != null) && price != 0 && quantity != 0) { //UPDATING NAME PRICE QUANTITY AND SELLER ID
+//                result = actions.updateProduct(barcode, name, price, quantity, supplierId);
+//            }
+            result = actions.updateProduct(barcode, name, price, quantity, supplierId);
 
             if (result == 2) {
                 dialogBoxUtility.showDialogBox(2);
