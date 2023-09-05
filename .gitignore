@@ -9,4 +9,5 @@ pom.xml
 **/demo/layouts
 **/text
 **/examples
+**/resources/config.properties
 
