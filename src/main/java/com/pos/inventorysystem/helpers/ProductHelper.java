@@ -35,25 +35,12 @@ public class ProductHelper {
         }
     }
 
-//    public static ObservableList<Product> getSearchedListByDetails(String name, String barcode) throws SQLException, ClassNotFoundException {
-//        ProductActions actions = new ProductActions();
-//        try {
-//            ResultSet resultSet = actions.searchProductByDetails(name, barcode);
-//            ObservableList<Product> list = getAllProductList(resultSet);
-//            return list;
-//        } catch (SQLException e) {
-//            System.out.println("Error showing table");
-//            e.printStackTrace();
-//            throw e;
-//        }
-//    }
 
     private static ObservableList<Product> getAllProductList(ResultSet resultSet) throws ClassNotFoundException, SQLException{
         try{
             ObservableList<Product> productsList = FXCollections.observableArrayList();
             while(resultSet.next()) {
                 Product product = new Product();
-                //product.setProductId(resultSet.getString("pid"));
                 product.setProductName(resultSet.getString("product_name"));
                 product.setBarcode(resultSet.getString("barcode"));
                 product.setPrice(resultSet.getInt("price"));

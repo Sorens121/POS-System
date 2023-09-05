@@ -22,10 +22,10 @@ public class CustomerHelper {
        }
    }
 
-    public static ObservableList<Customer> getSearchedList(String id) throws ClassNotFoundException, SQLException{
+    public static ObservableList<Customer> getSearchedList(String input) throws ClassNotFoundException, SQLException{
         CustomerActions actions = new CustomerActions();
         try{
-            ResultSet resultSet = actions.searchCustomerById(id);
+            ResultSet resultSet = actions.searchCustomer(input);
             ObservableList<Customer> list = getAllCustomerList(resultSet);
             return list;
         } catch(SQLException e){
@@ -35,27 +35,16 @@ public class CustomerHelper {
         }
     }
 
-    public static ObservableList<Customer> getSearchedListByDetails(String name, String tp) throws ClassNotFoundException, SQLException{
-        CustomerActions actions = new CustomerActions();
-        try{
-            ResultSet resultSet = actions.searchCustomerByDetails(name, tp);
-            ObservableList<Customer> list = getAllCustomerList(resultSet);
-            return list;
-        } catch(SQLException |ClassNotFoundException e){
-            System.out.println("Error while showing table");
-            e.printStackTrace();
-            throw e;
-        }
-    }
 
     private static ObservableList<Customer> getAllCustomerList(ResultSet resultSet) throws ClassNotFoundException,SQLException {
        try{
            ObservableList<Customer> customerList = FXCollections.observableArrayList();
            while(resultSet.next()){
                Customer customer = new Customer();
-               customer.setCustomerId(resultSet.getString("cid"));
+               customer.setCustomerId(resultSet.getString("customer_id"));
                customer.setCustomerName(resultSet.getString("customer_name"));
-               customer.setTpNumber(resultSet.getString("Tp_Number"));
+               customer.setContactNumber(resultSet.getString("contact_no"));
+               customer.setEmail(resultSet.getString("email"));
                customerList.add(customer);
            }
 

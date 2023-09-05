@@ -5,6 +5,9 @@ import com.pos.inventorysystem.actions.CustomerActions;
 import com.pos.inventorysystem.db.db;
 import com.pos.inventorysystem.helpers.CustomerHelper;
 import com.pos.inventorysystem.utils.DialogBoxUtility;
+import com.pos.inventorysystem.utils.GenericUtils;
+import com.pos.inventorysystem.utils.TableUtility;
+import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -27,37 +30,37 @@ import java.util.ResourceBundle;
 public class CustomerController {
 
     @FXML
-    private TextField c_name;
-
-    @FXML
     private TextField search_id;
 
     @FXML
-    private TextField tp_number;
+    private TextField customer_id_field;
+
+    @FXML
+    private TextField customer_name_field;
+
+    @FXML
+    private TextField contact_no_field;
+
+    @FXML
+    private TextField email_field;
 
     @FXML
     private TableView<Customer> customerTable;
 
     @FXML
-    private TableColumn<Customer, String> Tp_number;
-
-    @FXML
-    private TableColumn<Customer, String> c_id;
+    private TableColumn<Customer, Integer> serial_no;
 
     @FXML
     private TableColumn<Customer, String> customer_name;
 
-//    @FXML
-//    private Button deleteBtn;
-//
-//    @FXML
-//    private Button saveBtn;
-//
-//    @FXML
-//    private Button searchBtn;
-//
-//    @FXML
-//    private Button updateBtn;
+    @FXML
+    private TableColumn<Customer, String> customer_id;
+
+    @FXML
+    private TableColumn<Customer, String> contact_no;
+
+    @FXML
+    private TableColumn<Customer, String> email;
 
     private ObservableList<Customer> customers = null;
     private ResultSet resultSet = null;
@@ -65,21 +68,44 @@ public class CustomerController {
     DialogBoxUtility dialogBoxUtility = new DialogBoxUtility();
     CustomerActions actions = new CustomerActions();
 
+    private static final String CREATE_TABLE_QUERY = "CREATE TABLE customer (customer_id VARCHAR(12) NOT NULL, customer_name VARCHAR(45), contact_no VARCHAR(10), email VARCHAR(45), PRIMARY KEY(customer_id), UNIQUE(contact_no, email))";
 
      @FXML
-     private void initialize() throws Exception{
-         c_id.setCellValueFactory(cellData -> cellData.getValue().getCustomerIdProperty());
+     private void initialize() throws SQLException, ClassNotFoundException{
+         //check for the table
+         try{
+             boolean tableExist = TableUtility.checkTableExists("customer");
+
+             if(!tableExist) {
+                 TableUtility.createTable(CREATE_TABLE_QUERY);
+                 System.out.println("Table create successfully");
+             } else {
+                 System.out.println("Table already exist");
+             }
+         } catch (SQLException | ClassNotFoundException e){
+             System.out.println("Database error occurred: " + e.getMessage());
+         }
+
+         //initializing table columns
+         serial_no.setCellValueFactory(column -> new ReadOnlyObjectWrapper<>(customerTable.getItems().indexOf(column.getValue()) + 1));
+         customer_id.setCellValueFactory(cellData -> cellData.getValue().getCustomerIdProperty());
          customer_name.setCellValueFactory(cellData -> cellData.getValue().getCustomerNameProperty());
-         Tp_number.setCellValueFactory(cellData -> cellData.getValue().getTpNumberProperty());
+         contact_no.setCellValueFactory(cellData -> cellData.getValue().getContactNumberProperty());
+         email.setCellValueFactory(cellData -> cellData.getValue().getEmailProperty());
+
          customers = CustomerHelper.getAllRecords();
          populateTable(customers);
-
+         // setting customer id field as uneditable filed and applying grayed out css
+         customer_id_field.setEditable(false);
+         customer_id_field.setStyle("-fx-text-fill: gray;");
          //click on the items of the table and the data is displayed is the respective text fields
          customerTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
              if(newValue != null){
-                 search_id.setText(newValue.getCustomerId());
-                 c_name.setText(newValue.getCustomerName());
-                 tp_number.setText(newValue.getTpNumber());
+                 //search_id.setText(newValue.getCustomerId());
+                 customer_id_field.setText(newValue.getCustomerId());
+                 customer_name_field.setText(newValue.getCustomerName());
+                 contact_no_field.setText(newValue.getContactNumber());
+                 email_field.setText(newValue.getEmail());
              }
          });
      }
@@ -88,14 +114,27 @@ public class CustomerController {
          customerTable.setItems(customers);
     }
 
+    private void clearFields() {
+         customer_id_field.clear();
+         customer_name_field.clear();
+         contact_no_field.clear();
+         email_field.clear();
+         search_id.clear();
+    }
+
     @FXML
     void onSave(ActionEvent event) throws Exception {
-        String name = c_name.getText();
-        String tp = tp_number.getText();
+        String name = customer_name_field.getText();
+        String id = customer_id_field.getText();
+        String contact = contact_no_field.getText();
+        String email = email_field.getText();
+        String customerId = GenericUtils.GenerateCustomerNo();
+        System.out.println("Customer ID: " + customerId);
 
         try {
-            if (!name.isEmpty() && !tp.isEmpty()) {
-                int result = actions.createCustomer(name, tp);
+            if (!name.isEmpty() && !contact.isEmpty() && !email.isEmpty()) {
+                int result = actions.createCustomer(customerId, name, contact, email);
+
                 if (result == 1) {
                     dialogBoxUtility.showDialogBox(1);
                 } else {
@@ -104,51 +143,50 @@ public class CustomerController {
 
                 customers = CustomerHelper.getAllRecords();
                 populateTable(customers);
-
-            } else {
-                dialogBoxUtility.showDialogBox(7);
             }
-
         } catch (Exception e) {
             //System.out.println("Error from mySql server "+ e.getMessage());
-            dialogBoxUtility.showDialogBox(8);
+            dialogBoxUtility.showDialogBox(7);
             //e.printStackTrace();
         }
+
+        clearFields();
     }
 
     @FXML
-    void onUpdate(ActionEvent event) throws Exception{
-        String id = search_id.getText();
-        String name = c_name.getText();
-        String tp = tp_number.getText();
+    void onUpdate(ActionEvent event) throws Exception {
+        String customerId = customer_id_field.getText();
+        String name = customer_name_field.getText();
+        String contact = contact_no_field.getText();
+        String email = email_field.getText();
 
-        try{
-            if (!name.isEmpty() || !tp.isEmpty()) {
-                int result = actions.updateCustomer(id, name, tp);
-                if (result == 2) {
-                    dialogBoxUtility.showDialogBox(2);
-                } else {
-                    dialogBoxUtility.showDialogBox(0);
-                }
+        try {
+            int result = 0;
+            result = actions.updateCustomer(customerId, name, contact, email);
 
+            if (result == 2) {
+                dialogBoxUtility.showDialogBox(2);
                 customers = CustomerHelper.getAllRecords();
                 populateTable(customers);
+            } else if(result == 0){
+                dialogBoxUtility.showDialogBox(0);
             } else {
                 dialogBoxUtility.showDialogBox(7);
             }
-
         } catch (Exception e) {
             System.out.println("Error");
             e.printStackTrace();
         }
+
+        clearFields();
     }
 
 
     @FXML
     void onDelete(ActionEvent event) throws Exception{
-        String id = search_id.getText();
+        String deleteItemId = customer_id_field.getText();
         try{
-            int result = actions.deleteCustomer(id);
+            int result = actions.deleteCustomer(deleteItemId);
             if(result == 4) {
                 dialogBoxUtility.showDialogBox(4);
             } else{
@@ -163,56 +201,41 @@ public class CustomerController {
             System.out.println("Error");
             e.printStackTrace();
         }
+        clearFields();
     }
 
     @FXML
-    void searchInfo(ActionEvent event) throws Exception{
-        String id = search_id.getText();
+    void onSearch(ActionEvent event) throws Exception{
+        String searchInput = search_id.getText();
 
         try{
-            resultSet = actions.searchCustomerById(id);
+            resultSet = actions.searchCustomer(searchInput);
+
+            // need to change this logic of displaying result with respective fields this may cause problem when search result is more than one value
+
             if(resultSet.next()){
-                c_name.setText(resultSet.getString("customer_name"));
-                tp_number.setText(resultSet.getString("Tp_Number"));
+                customer_id_field.setText(resultSet.getString("customer_id"));
+                customer_name_field.setText(resultSet.getString("customer_name"));
+                contact_no_field.setText(resultSet.getString("contact_no"));
+                email_field.setText(resultSet.getString("email"));
             } else if (!resultSet.isBeforeFirst()) {
                 dialogBoxUtility.showDialogBox(3);
             }
 
-            customers = CustomerHelper.getSearchedList(id);
+            customers = CustomerHelper.getSearchedList(searchInput);
             populateTable(customers);
 
         } catch (Exception e){
             System.out.println("Error");
             e.printStackTrace();
         }
+
+        clearFields();
     }
 
     @FXML
-    void onSearch(ActionEvent event) {
-        String name = c_name.getText();
-        String tp = tp_number.getText();
-
-        System.out.println("Name: "+name+",TP: "+tp);
-
-        try{
-            if (!name.isEmpty() || !tp.isEmpty()) {
-                resultSet = actions.searchCustomerByDetails(name, tp);
-                if (!resultSet.isBeforeFirst()) {
-                    dialogBoxUtility.showDialogBox(3);
-                } else {
-                    dialogBoxUtility.showDialogBox(6);
-                }
-                customers = CustomerHelper.getSearchedListByDetails(name, tp);
-                populateTable(customers);
-            } else {
-                dialogBoxUtility.showDialogBox(7);
-            }
-
-
-        } catch (Exception e){
-            System.out.println("Error");
-            e.printStackTrace();
-        }
+    void onClear() {
+         clearFields();
     }
 }
 

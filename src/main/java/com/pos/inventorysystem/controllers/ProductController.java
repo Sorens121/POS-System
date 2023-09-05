@@ -122,6 +122,14 @@ public class ProductController {
         product_table.setItems(products);
     }
 
+    private void clearFields() {
+        p_name.clear();
+        barcode_field.clear();
+        price_field.clear();
+        quantity_field.clear();
+        supplierId_field.clear();
+    }
+
     @FXML
     void onSave(ActionEvent event) throws IOException {
         String name = p_name.getText();
@@ -144,6 +152,7 @@ public class ProductController {
         } catch (Exception e) {
             dialogBoxUtility.showDialogBox(7);
         }
+        clearFields();
     }
 
     @FXML
@@ -184,38 +193,8 @@ public class ProductController {
 
         System.out.println("Values: " + name + " " + barcode + " " + price + " " + quantity + " " + supplierId);
 
-        // updateProduct(String barcode, String name, int price, int quantity, String supplierId)
         try{
             int result = 0;
-//            if(!name.isEmpty() && name !=null){ // UPDATING ONLY PRODUCT NAME
-//                result = actions.updateProduct(barcode, name, 0, 0, null);
-//            } else if(price != 0) { // UPDATING ONLY PRICE
-//                result = actions.updateProduct(barcode, "", price, 0, null);
-//            } else if(quantity != 0) { // UPDATING ONLY QUANTITY
-//                result = actions.updateProduct(barcode, "", 0, quantity, null);
-//            } else if(!supplierId.isEmpty() && supplierId != null){ //UPDATING ONLY SELLER ID
-//                result = actions.updateProduct(barcode, "", 0, 0, supplierId);
-//            } else if((!name.isEmpty() && name != null) && price != 0){ //UPDATING NAME AND PRICE
-//                result = actions.updateProduct(barcode, "", price, 0, null);
-//            } else if((!name.isEmpty() && name != null) && quantity != 0){ //UPDATING NAME AND QUANTITY
-//                result = actions.updateProduct(barcode, name, 0, quantity, null);
-//            } else if((!name.isEmpty() && name != null) && (!supplierId.isEmpty() && supplierId != null)){ //UPDATING NAME AND SELLER ID
-//                result = actions.updateProduct(barcode, name, 0, 0, supplierId);
-//            } else if(price != 0 && quantity != 0 ){ //UPDATING PRICE AND QUANTITY
-//                result = actions.updateProduct(barcode, "", price, quantity, null);
-//            } else if((!supplierId.isEmpty() && supplierId != null) && price != 0){ //UPDATING PRICE AND SELLER ID
-//                result = actions.updateProduct(barcode, "", price, 0, supplierId);
-//            } else if(((!supplierId.isEmpty() && supplierId != null) && quantity != 0)){ //UPDATING QUANTITY AND SELLER ID
-//                result = actions.updateProduct(barcode, "", 0, quantity, supplierId);
-//            } else if ((!name.isEmpty() && name != null) && price != 0 && quantity != 0) { //UPDATING NAME PRICE AND QUANTITY
-//                result = actions.updateProduct(barcode, name, price, quantity, null);
-//            }else if ((!name.isEmpty() && name != null) && price != 0 && (!supplierId.isEmpty() && supplierId != null)) { //UPDATING NAME PRICE AND SELLER ID
-//                result = actions.updateProduct(barcode, name, price, 0, supplierId);
-//            }else if ((!supplierId.isEmpty() && supplierId != null) && price != 0 && quantity != 0) { //UPDATING PRICE QUANTITY AND SELLER ID
-//                result = actions.updateProduct(barcode, "", price, quantity, supplierId);
-//            }else if ((!name.isEmpty() && name != null) && (!supplierId.isEmpty() && supplierId != null) && price != 0 && quantity != 0) { //UPDATING NAME PRICE QUANTITY AND SELLER ID
-//                result = actions.updateProduct(barcode, name, price, quantity, supplierId);
-//            }
             result = actions.updateProduct(barcode, name, price, quantity, supplierId);
 
             if (result == 2) {
@@ -231,11 +210,28 @@ public class ProductController {
         } catch(SQLException | ClassNotFoundException | IOException e) {
             e.printStackTrace();
         }
+        clearFields();
     }
 
     @FXML
-    void onDelete(ActionEvent event) {
+    void onDelete(ActionEvent event) throws Exception{
+        String deleteItem = barcode_field.getText();
+        try{
+            int result = actions.deleteProduct(deleteItem);
+            if(result == 4){
+                dialogBoxUtility.showDialogBox(4);
+            } else {
+                dialogBoxUtility.showDialogBox(5);
+            }
 
+            products = ProductHelper.getAllRecords();
+            populateTable(products);
+
+        } catch(Exception e) {
+            System.out.println("Error");
+            e.printStackTrace();
+        }
+        clearFields();
     }
 
     @FXML
