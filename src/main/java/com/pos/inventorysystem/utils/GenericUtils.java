@@ -21,6 +21,18 @@ public class GenericUtils {
         return prefix + randomNumber + suffix;
     }
 
+    public static String GenerateCustomerNo() {
+        Random random = new Random();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyss");
+        String originalString = LocalDateTime.now().format(formatter);
+        long randomNumber = generateRandomNumber(random);
+        int splitIndex = 2;
+        String prefix = originalString.substring(0, splitIndex);
+        String suffix = originalString.substring(splitIndex);
+
+        return "10" + prefix + randomNumber + suffix;
+    }
+
     private static long generateRandomNumber(Random random) {
         long lowerBound = 100000L;
         long upperBound = 999999L;
