@@ -25,7 +25,7 @@ public class EmployeeHelper {
     public static ObservableList<Employee> getSearchedList(String id) throws ClassNotFoundException, SQLException{
         EmployeeActions actions = new EmployeeActions();
         try{
-            ResultSet resultSet = actions.searchEmployeeById(id);
+            ResultSet resultSet = actions.searchEmployee(id);
             ObservableList<Employee> list = getAllEmployeeList(resultSet);
             return list;
         } catch(SQLException e){
@@ -35,18 +35,6 @@ public class EmployeeHelper {
         }
     }
 
-    public static ObservableList<Employee> getSearchedListByDetails(String name, String tp) throws ClassNotFoundException, SQLException{
-        EmployeeActions actions = new EmployeeActions();
-        try{
-            ResultSet resultSet = actions.searchEmployeeByDetails(name, tp);
-            ObservableList<Employee> list = getAllEmployeeList(resultSet);
-            return list;
-        } catch(SQLException |ClassNotFoundException e){
-            System.out.println("Error while showing table");
-            e.printStackTrace();
-            throw e;
-        }
-    }
 
     private static ObservableList<Employee> getAllEmployeeList(ResultSet resultSet) throws SQLException {
         try{
@@ -55,7 +43,8 @@ public class EmployeeHelper {
                 Employee employee = new Employee();
                 employee.setEmployeeId(resultSet.getString("eid"));
                 employee.setEmployeeName(resultSet.getString("employee_name"));
-                employee.setEmployeeTpNumber(resultSet.getString("employee_Tp_Number"));
+                employee.setContactNo(resultSet.getString("contact_no"));
+                employee.setEmail(resultSet.getString("email"));
                 employeeList.add(employee);
             }
 

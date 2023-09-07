@@ -3,6 +3,7 @@ package com.pos.inventorysystem.controllers;
 import com.pos.inventorysystem.Model.Product;
 import com.pos.inventorysystem.actions.ProductActions;
 import com.pos.inventorysystem.helpers.ProductHelper;
+import com.pos.inventorysystem.utils.ConfigFileManager;
 import com.pos.inventorysystem.utils.DialogBoxUtility;
 import com.pos.inventorysystem.utils.TableUtility;
 import javafx.beans.property.ReadOnlyObjectWrapper;
@@ -76,12 +77,14 @@ public class ProductController {
 
     @FXML
     private void initialize() throws ClassNotFoundException, SQLException {
+        ConfigFileManager configFileManager = new ConfigFileManager();
         try{
             //check if table exist
-            boolean tableExist = TableUtility.checkTableExists("product");
+            boolean tableCheckFlag = Boolean.parseBoolean(configFileManager.getProperty("product_table.flag"));
 
-            if(!tableExist) {
+            if(!tableCheckFlag) {
                 TableUtility.createTable(CREATE_TABLE_QUERY);
+                configFileManager.setProperty("product_table.flag", "true");
                 System.out.println("Table created successfully");
             } else {
                 System.out.println("Table already exist");
@@ -102,19 +105,19 @@ public class ProductController {
         products = ProductHelper.getAllRecords();
         populateTable(products);
 
-        System.out.print("Table data: " + product_name + barcode + price + quantity + supplier_id);
+        //System.out.print("Table data: " + product_name + barcode + price + quantity + supplier_id);
 
         //display details in their respective fields when items are selected from the table
         product_table.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue != null) {
                 p_name.setText(newValue.getProductName());
                 barcode_field.setText(newValue.getBarcode());
+                barcode_field.setEditable(false);
+                barcode_field.setStyle("-fx-text-fill: gray; -fx-background-color: #f4f4f4; -fx-border-width: 1px; -fx-border-color: #ccc;");
                 price_field.setText(String.valueOf(newValue.getPrice()));
                 quantity_field.setText(String.valueOf(newValue.getQuantity()));
                 supplierId_field.setText(newValue.getSupplierId());
             }
-
-            System.out.println("On table row selection: " + p_name + barcode_field + price_field + quantity_field + supplierId_field);
         });
     }
 
@@ -125,8 +128,8 @@ public class ProductController {
     private void clearFields() {
         p_name.clear();
         barcode_field.clear();
-        price_field.clear();
-        quantity_field.clear();
+        price_field.setText("0");
+        quantity_field.setText("0");
         supplierId_field.clear();
     }
 
@@ -139,7 +142,7 @@ public class ProductController {
         String supplierId = supplierId_field.getText();
 
         try {
-            if(!name.isEmpty() && !barcode.isEmpty()) {
+            if((!name.isEmpty() || !name.isBlank()) && (!barcode.isEmpty() || !barcode.isBlank())) {
                 int result = actions.addNewProduct(name, barcode, price, quantity, supplierId);
                 if(result == 1) {
                     dialogBoxUtility.showDialogBox(1);
@@ -148,6 +151,8 @@ public class ProductController {
                 }
                 products = ProductHelper.getAllRecords();
                 populateTable(products);
+            } else {
+                dialogBoxUtility.showDialogBox(7);
             }
         } catch (Exception e) {
             dialogBoxUtility.showDialogBox(7);
@@ -155,13 +160,9 @@ public class ProductController {
         clearFields();
     }
 
+
     @FXML
     void onSearch(ActionEvent event) {
-
-    }
-
-    @FXML
-    void onSearchInfo(ActionEvent event) {
         String searchInput = userInput.getText();
 
         try{
@@ -191,7 +192,7 @@ public class ProductController {
         int quantity = Integer.parseInt(quantity_field.getText());
         String supplierId = supplierId_field.getText();
 
-        System.out.println("Values: " + name + " " + barcode + " " + price + " " + quantity + " " + supplierId);
+        //System.out.println("Values: " + name + " " + barcode + " " + price + " " + quantity + " " + supplierId);
 
         try{
             int result = 0;

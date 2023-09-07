@@ -5,80 +5,18 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
-<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1200.0" style="-fx-background-color: #D3D9DF;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pos.inventorysystem.controllers.HomeController">
-   <left>
-      <VBox prefHeight="736.0" prefWidth="250.0" style="-fx-border-color: #ffffff;" BorderPane.alignment="CENTER">
-         <children>
-            <Button fx:id="customerBtn" alignment="CENTER" mnemonicParsing="false" onAction="#OnCustomerClick" prefHeight="40.0" prefWidth="160.0" text="Customer">
-               <VBox.margin>
-                  <Insets bottom="30.0" left="45.0" top="100.0" />
-               </VBox.margin>
-               <font>
-                  <Font size="15.0" />
-               </font>
-            </Button>
-            <Button fx:id="suppllerBtn" alignment="CENTER" layoutX="55.0" layoutY="110.0" mnemonicParsing="false" onAction="#OnSupplierClick" prefHeight="40.0" prefWidth="160.0" text="Suppliers">
-               <VBox.margin>
-                  <Insets bottom="30.0" left="45.0" />
-               </VBox.margin>
-               <font>
-                  <Font size="15.0" />
-               </font>
-            </Button>
-            <Button fx:id="employeeBtn" alignment="CENTER" layoutX="10.0" layoutY="160.0" mnemonicParsing="false" onAction="#OnEmployeeClick" prefHeight="40.0" prefWidth="160.0" text="Employee">
-               <VBox.margin>
-                  <Insets bottom="30.0" left="45.0" />
-               </VBox.margin>
-               <font>
-                  <Font size="15.0" />
-               </font>
-            </Button>
-            <Button fx:id="productBtn" alignment="CENTER" layoutX="10.0" layoutY="200.0" mnemonicParsing="false" onAction="#OnProductClick" prefHeight="40.0" prefWidth="160.0" text="Product">
-               <VBox.margin>
-                  <Insets bottom="30.0" left="45.0" />
-               </VBox.margin>
-               <font>
-                  <Font size="15.0" />
-               </font>
-            </Button>
-            <Button fx:id="salesBtn" alignment="CENTER" layoutX="10.0" layoutY="240.0" mnemonicParsing="false" onAction="#OnSalesClick" prefHeight="40.0" prefWidth="160.0" text="Sales">
-               <VBox.margin>
-                  <Insets bottom="30.0" left="45.0" />
-               </VBox.margin>
-               <font>
-                  <Font size="15.0" />
-               </font>
-            </Button>
-            <Button fx:id="invoiceBtn" alignment="CENTER" layoutX="10.0" layoutY="280.0" mnemonicParsing="false" onAction="#OnInvoiceClick" prefHeight="40.0" prefWidth="160.0" text="Invoice">
-               <VBox.margin>
-                  <Insets bottom="30.0" left="45.0" />
-               </VBox.margin>
-               <font>
-                  <Font size="15.0" />
-               </font>
-            </Button>
-            <Button fx:id="reportsBtn" alignment="CENTER" layoutX="10.0" layoutY="320.0" mnemonicParsing="false" onAction="#OnReportsClick" prefHeight="40.0" prefWidth="160.0" text="Reports">
-               <VBox.margin>
-                  <Insets bottom="30.0" left="45.0" />
-               </VBox.margin>
-               <font>
-                  <Font size="15.0" />
-               </font>
-            </Button>
-         </children>
-         <BorderPane.margin>
-            <Insets bottom="20.0" left="20.0" top="30.0" />
-         </BorderPane.margin>
-      </VBox>
-   </left>
-   <top>
-      <MenuBar BorderPane.alignment="CENTER">
+
+<AnchorPane prefHeight="800.0" prefWidth="1200.0" style="-fx-background-color: #D3D9DF;" xmlns="http://javafx.com/javafx/19" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.pos.inventorysystem.controllers.HomeController">
+   <children>
+      <MenuBar prefWidth="1200.0">
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
@@ -97,15 +35,126 @@
           </Menu>
         </menus>
       </MenuBar>
-   </top>
-   <center>
-      <StackPane fx:id="contentArea" prefHeight="775.0" prefWidth="911.0" BorderPane.alignment="CENTER">
+      <HBox layoutY="25.0" prefHeight="529.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="25.0">
          <children>
-            <Pane prefHeight="680.0" prefWidth="890.0" style="-fx-border-color: #ffffff;">
-               <StackPane.margin>
-                  <Insets bottom="20.0" left="20.0" right="20.0" top="30.0" />
-               </StackPane.margin>
+            <VBox prefHeight="736.0" prefWidth="250.0" style="-fx-border-color: #ffffff;">
+               <children>
+                  <Button alignment="CENTER" mnemonicParsing="false" onAction="#OnCustomerClick" prefHeight="30.0" prefWidth="160.0" text="Customer">
+                     <VBox.margin>
+                        <Insets bottom="30.0" left="45.0" top="100.0" />
+                     </VBox.margin>
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../../img/customer.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button alignment="CENTER" layoutX="55.0" layoutY="110.0" mnemonicParsing="false" onAction="#OnSupplierClick" prefHeight="30.0" prefWidth="160.0" text="Suppliers">
+                     <VBox.margin>
+                        <Insets bottom="30.0" left="45.0" />
+                     </VBox.margin>
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                     <graphic>
+                        <ImageView fitHeight="22.0" fitWidth="22.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../../img/supplier.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button alignment="CENTER" layoutX="10.0" layoutY="160.0" mnemonicParsing="false" onAction="#OnEmployeeClick" prefHeight="30.0" prefWidth="160.0" text="Employee">
+                     <VBox.margin>
+                        <Insets bottom="30.0" left="45.0" />
+                     </VBox.margin>
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../../img/emp.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button alignment="CENTER" layoutX="10.0" layoutY="200.0" mnemonicParsing="false" onAction="#OnProductClick" prefHeight="30.0" prefWidth="160.0" text="Product">
+                     <VBox.margin>
+                        <Insets bottom="30.0" left="45.0" />
+                     </VBox.margin>
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../../img/product.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button alignment="CENTER" layoutX="10.0" layoutY="240.0" mnemonicParsing="false" onAction="#OnSalesClick" prefHeight="30.0" prefWidth="160.0" text="Sales">
+                     <VBox.margin>
+                        <Insets bottom="30.0" left="45.0" />
+                     </VBox.margin>
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../../img/sales_menu.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button alignment="CENTER" layoutX="10.0" layoutY="280.0" mnemonicParsing="false" onAction="#OnInvoiceClick" prefHeight="30.0" prefWidth="160.0" text="Invoice">
+                     <VBox.margin>
+                        <Insets bottom="30.0" left="45.0" />
+                     </VBox.margin>
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../../img/invo.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+                  <Button alignment="CENTER" layoutX="10.0" layoutY="320.0" mnemonicParsing="false" onAction="#OnReportsClick" prefHeight="30.0" prefWidth="160.0" text="Reports">
+                     <VBox.margin>
+                        <Insets bottom="30.0" left="45.0" />
+                     </VBox.margin>
+                     <font>
+                        <Font size="15.0" />
+                     </font>
+                     <graphic>
+                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@../../../img/reports.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
+               </children>
+               <HBox.margin>
+                  <Insets bottom="20.0" left="15.0" top="20.0" />
+               </HBox.margin>
+            </VBox>
+            <Pane fx:id="contentArea" prefHeight="775.0" prefWidth="936.0" style="-fx-border-width: 1px; -fx-border-color: #ffffff;">
+               <HBox.margin>
+                  <Insets bottom="20.0" left="10.0" right="15.0" top="20.0" />
+               </HBox.margin>
             </Pane>
-         </children></StackPane>
-   </center>
-</BorderPane>
+         </children>
+      </HBox>
+   </children>
+</AnchorPane>

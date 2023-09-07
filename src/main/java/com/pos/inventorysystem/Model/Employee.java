@@ -5,12 +5,14 @@ import javafx.beans.property.SimpleStringProperty;
 public class Employee {
     private SimpleStringProperty employeeId;
     private SimpleStringProperty employeeName;
-    private SimpleStringProperty employeeTpNumber;
+    private SimpleStringProperty contactNo;
+    private SimpleStringProperty email;
 
     public Employee() {
         this.employeeId = new SimpleStringProperty();
         this.employeeName = new SimpleStringProperty();
-        this.employeeTpNumber = new SimpleStringProperty();
+        this.contactNo = new SimpleStringProperty();
+        this.email = new SimpleStringProperty();
     }
 
     public String getEmployeeId() {
@@ -37,15 +39,27 @@ public class Employee {
         this.employeeName.set(employeeName);
     }
 
-    public String getEmployeeTpNumber() {
-        return employeeTpNumber.get();
+    public String getContactNo() {
+        return contactNo.get();
     }
 
-    public SimpleStringProperty getEmployeeTpNumberProperty() {
-        return employeeTpNumber;
+    public SimpleStringProperty getContactNoProperty() {
+        return contactNo;
     }
 
-    public void setEmployeeTpNumber(String employeeTpNumber) {
-        this.employeeTpNumber.set(employeeTpNumber);
+    public void setContactNo(String contactNo) {
+        this.contactNo.set(contactNo);
+    }
+
+    public String getEmail() {
+        return email.get();
+    }
+
+    public SimpleStringProperty getEmailProperty() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email.set(email);
     }
 }

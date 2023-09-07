@@ -4,9 +4,7 @@ import com.pos.inventorysystem.Model.Customer;
 import com.pos.inventorysystem.actions.CustomerActions;
 import com.pos.inventorysystem.db.db;
 import com.pos.inventorysystem.helpers.CustomerHelper;
-import com.pos.inventorysystem.utils.DialogBoxUtility;
-import com.pos.inventorysystem.utils.GenericUtils;
-import com.pos.inventorysystem.utils.TableUtility;
+import com.pos.inventorysystem.utils.*;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -72,16 +70,22 @@ public class CustomerController {
 
      @FXML
      private void initialize() throws SQLException, ClassNotFoundException{
-         //check for the table
-         try{
-             boolean tableExist = TableUtility.checkTableExists("customer");
+         ConfigFileManager configFileManager = new ConfigFileManager();
 
-             if(!tableExist) {
+         try{
+             // CHECK TABLE FLAG FROM CONFIG FILE
+             boolean tableCheckFlag = Boolean.parseBoolean(configFileManager.getProperty("customer_table.flag"));
+             //System.out.println("Customer Table Flag " + tableCheckFlag);
+
+             if(!tableCheckFlag) {
+                 // IF FALSE THEN CREATE TABLE AND UPDATE FLAG
                  TableUtility.createTable(CREATE_TABLE_QUERY);
+                 configFileManager.setProperty("customer_table.flag", "true");
                  System.out.println("Table create successfully");
              } else {
                  System.out.println("Table already exist");
              }
+
          } catch (SQLException | ClassNotFoundException e){
              System.out.println("Database error occurred: " + e.getMessage());
          }
@@ -98,6 +102,7 @@ public class CustomerController {
          // setting customer id field as uneditable filed and applying grayed out css
          customer_id_field.setEditable(false);
          customer_id_field.setStyle("-fx-text-fill: gray;");
+
          //click on the items of the table and the data is displayed is the respective text fields
          customerTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
              if(newValue != null){
@@ -129,7 +134,7 @@ public class CustomerController {
         String contact = contact_no_field.getText();
         String email = email_field.getText();
         String customerId = GenericUtils.GenerateCustomerNo();
-        System.out.println("Customer ID: " + customerId);
+        //System.out.println("Customer ID: " + customerId);
 
         try {
             if (!name.isEmpty() && !contact.isEmpty() && !email.isEmpty()) {

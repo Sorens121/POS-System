@@ -18,7 +18,7 @@ public class CustomerActions {
     public ResultSet getAllCustomers() throws SQLException, ClassNotFoundException {
         sql = "SELECT * FROM customer";
         try {
-            s = Objects.requireNonNull(db.myconnect()).createStatement();
+            s = Objects.requireNonNull(db.myConnection()).createStatement();
             resultSet = s.executeQuery(sql);
             return resultSet;
         } catch (SQLException | ClassNotFoundException e) {
@@ -32,7 +32,7 @@ public class CustomerActions {
     private ResultSet getOneCustomer(String customerId) throws SQLException, ClassNotFoundException {
         sql = "SELECT * FROM customer WHERE customer_id = '"+customerId+"'";
         try {
-            s = db.myconnect().createStatement();
+            s = db.myConnection().createStatement();
             resultSet = s.executeQuery(sql);
             return resultSet;
         } catch (SQLException | ClassNotFoundException e) {
@@ -45,7 +45,7 @@ public class CustomerActions {
         int output = 0;
         sql = "INSERT INTO customer (customer_id, customer_name, contact_no, email) VALUES ('"+customerId+"', '"+name+"', '"+contact+"', '"+email+"')";
         try{
-            s = db.myconnect().createStatement();
+            s = db.myConnection().createStatement();
             output = s.executeUpdate(sql);
             return output;
         } catch (SQLException e) {
@@ -108,7 +108,7 @@ public class CustomerActions {
         }
 
 
-        try(PreparedStatement ps = db.myconnect().prepareStatement(updateQuery)){
+        try(PreparedStatement ps = db.myConnection().prepareStatement(updateQuery)){
             if(state != null){
               switch (state) {
                   case "1":
@@ -181,7 +181,7 @@ public class CustomerActions {
     public Integer deleteCustomer(String customerId) throws SQLException, ClassNotFoundException {
         sql = "DELETE FROM customer WHERE customer_id = '"+customerId+"'";
         try {
-            s = Objects.requireNonNull(db.myconnect()).createStatement();
+            s = Objects.requireNonNull(db.myConnection()).createStatement();
             int output = s.executeUpdate(sql);
             if(output == 1) {
                 return 4; // delete success
@@ -200,7 +200,7 @@ public class CustomerActions {
         String wildcard = "%" + searchInput + "%";
 
         try{
-            PreparedStatement ps = db.myconnect().prepareStatement(sql);
+            PreparedStatement ps = db.myConnection().prepareStatement(sql);
             ps.setString(1, wildcard);
             ps.setString(2, wildcard);
             ps.setString(3, searchInput);

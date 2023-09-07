@@ -3,6 +3,7 @@ package com.pos.inventorysystem.controllers;
 import com.pos.inventorysystem.Model.Supplier;
 import com.pos.inventorysystem.actions.SupplierActions;
 import com.pos.inventorysystem.helpers.SupplierHelper;
+import com.pos.inventorysystem.utils.ConfigFileManager;
 import com.pos.inventorysystem.utils.DialogBoxUtility;
 import com.pos.inventorysystem.utils.TableUtility;
 import javafx.collections.ObservableList;
@@ -46,14 +47,15 @@ public class SupplierController {
 
    @FXML
    public void initialize() throws SQLException, ClassNotFoundException {
+       ConfigFileManager configFileManager = new ConfigFileManager();
        try {
            //check if table exists
-           boolean tableExists = TableUtility.checkTableExists("suppliers");
+           boolean tableCheckFlag = Boolean.parseBoolean(configFileManager.getProperty("supplier_table.flag"));
            //System.out.println("From Database: " + tableExists);
 
-           // If the table doesn't exist, create it
-           if(!tableExists) {
+           if(!tableCheckFlag) {
                TableUtility.createTable(CREATE_TABLE_QUERY);
+               configFileManager.setProperty("supplier_table.flag", "true");
                System.out.println("Table create successfully");
            } else {
                System.out.println("Table already exist");

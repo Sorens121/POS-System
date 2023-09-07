@@ -15,7 +15,7 @@ public class SupplierActions {
     public ResultSet getAllSuppliers() throws SQLException, ClassNotFoundException{
         query = "SELECT * FROM supplier";
         try{
-            s = db.myconnect().createStatement();
+            s = db.myConnection().createStatement();
             resultSet = s.executeQuery(query);
             return resultSet;
         } catch (SQLException | ClassNotFoundException e){
@@ -29,7 +29,7 @@ public class SupplierActions {
         int output = 0;
         query = "INSERT INTO supplier (supplier_name, supplier_Tp_Number) VALUES ('"+name+"', '"+supplier_tp+"')";
         try{
-            s = db.myconnect().createStatement();
+            s = db.myConnection().createStatement();
             output = s.executeUpdate(query);
             return output;
         } catch (SQLException e){
@@ -42,7 +42,7 @@ public class SupplierActions {
     public Integer updateSupplier(String id, String name, String supplier_tp) throws SQLException, ClassNotFoundException{
         query = "UPDATE supplier SET supplier_name = '"+name+"', supplier_Tp_Number = '"+supplier_tp+"' WHERE sid = '"+id+"'";
         try{
-            s = db.myconnect().createStatement();
+            s = db.myConnection().createStatement();
             int output = s.executeUpdate(query);
             if(output == 1){
                 return 2;
@@ -59,7 +59,7 @@ public class SupplierActions {
     public Integer deleteSupplier(String id) throws ClassNotFoundException, SQLException {
         query = "DELETE FROM supplier WHERE sid = '"+id+"'";
         try{
-            s = db.myconnect().createStatement();
+            s = db.myConnection().createStatement();
             int output = s.executeUpdate(query);
             if(output == 1){
                 return 4;
@@ -76,7 +76,7 @@ public class SupplierActions {
     public ResultSet searchSupplierById(String id) throws ClassNotFoundException, SQLException {
         query = "SELECT * FROM supplier WHERE sid = '"+id+"'";
         try{
-            s = db.myconnect().createStatement();
+            s = db.myConnection().createStatement();
             resultSet = s.executeQuery(query);
             return resultSet;
         } catch(SQLException e) {
@@ -100,7 +100,7 @@ public class SupplierActions {
             query = "SELECT * FROM supplier WHERE supplier_Tp_Number = '"+supplier_tp+"'";
         }
         try{
-            s = db.myconnect().createStatement();
+            s = db.myConnection().createStatement();
             resultSet = s.executeQuery(query);
             return resultSet;
         } catch (SQLException e) {

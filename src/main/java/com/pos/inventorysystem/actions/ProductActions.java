@@ -17,7 +17,7 @@ public class ProductActions {
         query = "SELECT * FROM product";
 
         try{
-            s = db.myconnect().createStatement();
+            s = db.myConnection().createStatement();
             resultSet = s.executeQuery(query);
             return resultSet;
         } catch(SQLException | ClassNotFoundException e) {
@@ -30,7 +30,7 @@ public class ProductActions {
     public ResultSet getOneProduct(String searchID) throws SQLException, ClassNotFoundException {
         query = "SELECT * FROM product WHERE barcode = '"+searchID+"'";
         try{
-            s = db.myconnect().createStatement();
+            s = db.myConnection().createStatement();
             resultSet = s.executeQuery(query);
             return resultSet;
         } catch (SQLException | ClassNotFoundException e){
@@ -43,7 +43,7 @@ public class ProductActions {
         int output = 0;
         query = "INSERT INTO product (product_name, barcode, price, quantity, supplier_id) VALUES ('"+name+"', '"+barcode+"', '"+price+"', '"+quantity+"', '"+supplierId+"')";
         try {
-            s = db.myconnect().createStatement();
+            s = db.myConnection().createStatement();
             output = s.executeUpdate(query);
             return output;
         } catch (SQLException e) {
@@ -146,7 +146,7 @@ public class ProductActions {
             state = "15";
         }
 
-        try(PreparedStatement ps = db.myconnect().prepareStatement(updateQuery)){
+        try(PreparedStatement ps = db.myConnection().prepareStatement(updateQuery)){
             if (state != null) {
                 switch (state){
                     case "1":
@@ -292,7 +292,7 @@ public class ProductActions {
     public Integer deleteProduct(String barcode) throws SQLException, ClassNotFoundException {
         query = "DELETE FROM product WHERE barcode = '"+barcode+"'";
         try{
-            s = db.myconnect().createStatement();
+            s = db.myConnection().createStatement();
             int output = s.executeUpdate(query);
             if(output == 1) {
                 return 4; // deleted successfully
@@ -310,7 +310,7 @@ public class ProductActions {
         query = "SELECT * FROM product where product_name LIKE ? OR barcode LIKE ?" ;
         String wildcard = "%" + searchInput + "%";
         try{
-            PreparedStatement preparedStatement = db.myconnect().prepareStatement(query);
+            PreparedStatement preparedStatement = db.myConnection().prepareStatement(query);
             preparedStatement.setString(1, wildcard);
             preparedStatement.setString(2, wildcard);
 
