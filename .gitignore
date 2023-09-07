@@ -5,6 +5,7 @@ mvnw.cmd
 mvnw
 POSInventorySystem.iml
 pom.xml
+**/math
 **/demo/layouts
 **/text
 **/examples
