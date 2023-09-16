@@ -2,28 +2,25 @@ package com.pos.inventorysystem.controllers;
 
 import com.pos.inventorysystem.Model.Customer;
 import com.pos.inventorysystem.actions.CustomerActions;
-import com.pos.inventorysystem.db.db;
 import com.pos.inventorysystem.helpers.CustomerHelper;
-import com.pos.inventorysystem.utils.*;
+import com.pos.inventorysystem.helpers.GenericSQLHelper;
+import com.pos.inventorysystem.utils.ConfigFileManager;
+import com.pos.inventorysystem.utils.DialogBoxUtility;
+import com.pos.inventorysystem.utils.GenericUtils;
+import com.pos.inventorysystem.utils.TableUtility;
 import javafx.beans.property.ReadOnlyObjectWrapper;
-import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
-import javafx.scene.control.Button;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
-import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.layout.StackPane;
 
-import java.io.IOException;
-import java.net.URL;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.ResourceBundle;
+import java.util.Arrays;
+import java.util.List;
 
 public class CustomerController {
 
@@ -43,30 +40,16 @@ public class CustomerController {
     private TextField email_field;
 
     @FXML
-    private TableView<Customer> customerTable;
+    private StackPane tableArea;
 
-    @FXML
-    private TableColumn<Customer, Integer> serial_no;
-
-    @FXML
-    private TableColumn<Customer, String> customer_name;
-
-    @FXML
-    private TableColumn<Customer, String> customer_id;
-
-    @FXML
-    private TableColumn<Customer, String> contact_no;
-
-    @FXML
-    private TableColumn<Customer, String> email;
-
-    private ObservableList<Customer> customers = null;
     private ResultSet resultSet = null;
 
     DialogBoxUtility dialogBoxUtility = new DialogBoxUtility();
     CustomerActions actions = new CustomerActions();
 
     private static final String CREATE_TABLE_QUERY = "CREATE TABLE customer (customer_id VARCHAR(12) NOT NULL, customer_name VARCHAR(45), contact_no VARCHAR(10), email VARCHAR(45), PRIMARY KEY(customer_id), UNIQUE(contact_no, email))";
+
+    private final TableView<Customer> customerTable = new TableView<>();
 
      @FXML
      private void initialize() throws SQLException, ClassNotFoundException{
@@ -90,24 +73,22 @@ public class CustomerController {
              System.out.println("Database error occurred: " + e.getMessage());
          }
 
-         //initializing table columns
-         serial_no.setCellValueFactory(column -> new ReadOnlyObjectWrapper<>(customerTable.getItems().indexOf(column.getValue()) + 1));
-         customer_id.setCellValueFactory(cellData -> cellData.getValue().getCustomerIdProperty());
-         customer_name.setCellValueFactory(cellData -> cellData.getValue().getCustomerNameProperty());
-         contact_no.setCellValueFactory(cellData -> cellData.getValue().getContactNumberProperty());
-         email.setCellValueFactory(cellData -> cellData.getValue().getEmailProperty());
+         //Since the employee ID will auto generated so the field is non-editable
+         customer_id_field.setDisable(true);
+         customer_id_field.setPromptText("This field is auto generated");
+         customer_id_field.setStyle("-fx-prompt-text-fill: #1a1aff; -fx-background-color: #f4f4f4; -fx-border-width: 1px; -fx-border-color: #ccc;");
 
-         customers = CustomerHelper.getAllRecords();
-         populateTable(customers);
-         // setting customer id field as uneditable filed and applying grayed out css
-         customer_id_field.setEditable(false);
-         customer_id_field.setStyle("-fx-text-fill: gray;");
+         resultSet = CustomerHelper.getAllRecords();
+         initializeTable(resultSet);
+         populateTableData(resultSet);
 
          //click on the items of the table and the data is displayed is the respective text fields
          customerTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
              if(newValue != null){
                  //search_id.setText(newValue.getCustomerId());
                  customer_id_field.setText(newValue.getCustomerId());
+                 // setting customer id field as uneditable filed
+                 customer_id_field.setEditable(false);
                  customer_name_field.setText(newValue.getCustomerName());
                  contact_no_field.setText(newValue.getContactNumber());
                  email_field.setText(newValue.getEmail());
@@ -115,8 +96,43 @@ public class CustomerController {
          });
      }
 
-    private void populateTable(ObservableList<Customer> customers) {
-         customerTable.setItems(customers);
+     // initializing the table for first time i.e. it is called only once
+    @SuppressWarnings("unchecked")
+     public void initializeTable(ResultSet resultSet) {
+        TableColumn<Customer, Integer> serial_no = new TableColumn<>("Serial No".toUpperCase());
+        TableColumn<Customer, String> customer_id = TableUtility.createTableColumn("Customer Id".toUpperCase(), Customer::getCustomerId);
+        TableColumn<Customer, String> customer_name = TableUtility.createTableColumn("customer name".toUpperCase(), Customer::getCustomerName);
+        TableColumn<Customer, String> contact = TableUtility.createTableColumn("contact".toUpperCase(), Customer::getContactNumber);
+        TableColumn<Customer, String> email = TableUtility.createTableColumn("email".toUpperCase(), Customer::getEmail);
+
+        if(resultSet!= null){
+            serial_no.setCellValueFactory(column -> new ReadOnlyObjectWrapper<>(customerTable.getItems().indexOf(column.getValue()) + 1));
+        }
+
+        serial_no.setPrefWidth(80);
+        customer_id.setPrefWidth(150);
+        customer_name.setPrefWidth(200);
+        contact.setPrefWidth(150);
+        email.setPrefWidth(200);
+
+        customerTable.getColumns().addAll(serial_no, customer_id, customer_name, contact, email);
+        tableArea.getChildren().add(customerTable);
+     }
+
+     // populate table with data
+    public void populateTableData(ResultSet resultSet) throws SQLException, ClassNotFoundException {
+        // populate table with data
+        try {
+            ObservableList<Customer> customers = CustomerHelper.getAllCustomerRecords(resultSet);
+            customerTable.setItems(customers);
+        } catch (ClassNotFoundException | SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    void onClear() {
+        clearFields();
     }
 
     private void clearFields() {
@@ -133,50 +149,74 @@ public class CustomerController {
         String id = customer_id_field.getText();
         String contact = contact_no_field.getText();
         String email = email_field.getText();
-        String customerId = GenericUtils.GenerateCustomerNo();
-        //System.out.println("Customer ID: " + customerId);
+
+        if(id.isEmpty() || id.isBlank()){
+            id = GenericUtils.GenerateCustomerNo();
+        }
+
+        //System.out.println("Customer ID: " + id);
+        String selectQuery = "SELECT * FROM customer WHERE customer_id = ?";
 
         try {
-            if (!name.isEmpty() && !contact.isEmpty() && !email.isEmpty()) {
-                int result = actions.createCustomer(customerId, name, contact, email);
+            // check duplicates before creating a new entry
+            boolean checkDuplicate = GenericSQLHelper.checkDuplicate(selectQuery, id);
+            if (name.isBlank() || contact.isBlank() || email.isBlank()) {
+                dialogBoxUtility.showDialogBox(7);
+            } else if (checkDuplicate) {// if false then only insert new customer
+                int result = actions.createCustomer(id, name, contact, email);
 
                 if (result == 1) {
                     dialogBoxUtility.showDialogBox(1);
                 } else {
                     dialogBoxUtility.showDialogBox(0);
                 }
-
-                customers = CustomerHelper.getAllRecords();
-                populateTable(customers);
+            } else {
+                dialogBoxUtility.showDialogBox(8);
             }
+
+            resultSet = CustomerHelper.getAllRecords();
+            populateTableData(resultSet);
+
         } catch (Exception e) {
-            //System.out.println("Error from mySql server "+ e.getMessage());
+            System.out.println("Error from mySql server " + e.getMessage());
             dialogBoxUtility.showDialogBox(7);
             //e.printStackTrace();
         }
-
         clearFields();
     }
 
     @FXML
     void onUpdate(ActionEvent event) throws Exception {
-        String customerId = customer_id_field.getText();
-        String name = customer_name_field.getText();
-        String contact = contact_no_field.getText();
-        String email = email_field.getText();
+        String customerId = customer_id_field.getText().trim();
+        String name = customer_name_field.getText().trim();
+        String contact = contact_no_field.getText().trim();
+        String email = email_field.getText().trim();
+
+        List<String> params = List.of(name, contact, email);
+
+        String query = "SELECT * FROM customer WHERE customer_id = ?";
 
         try {
+            boolean updateRequired = GenericSQLHelper.shouldUpdateRow(query, customerId, params);
             int result = 0;
-            result = actions.updateCustomer(customerId, name, contact, email);
 
-            if (result == 2) {
-                dialogBoxUtility.showDialogBox(2);
-                customers = CustomerHelper.getAllRecords();
-                populateTable(customers);
-            } else if(result == 0){
-                dialogBoxUtility.showDialogBox(0);
-            } else {
+            if(name.isBlank() || contact.isBlank() || email.isBlank()){
                 dialogBoxUtility.showDialogBox(7);
+            } else if(updateRequired) {
+                // need to check for unchanged values and null before running the queries
+                result = actions.updateCustomer(customerId, name, contact, email);
+
+                if (result == 2) {
+                    dialogBoxUtility.showDialogBox(2);
+                    resultSet = CustomerHelper.getAllRecords();
+                    populateTableData(resultSet);
+                } else if(result == 0){
+                    dialogBoxUtility.showDialogBox(0);
+                } else {
+                    dialogBoxUtility.showDialogBox(7);
+                }
+            } else {
+                dialogBoxUtility.showDialogBox(8);
             }
         } catch (Exception e) {
             System.out.println("Error");
@@ -198,9 +238,8 @@ public class CustomerController {
                 dialogBoxUtility.showDialogBox(5);
             }
 
-            customers = CustomerHelper.getAllRecords();
-            populateTable(customers);
-            System.out.println("Deleted Id: " + search_id);
+            resultSet = CustomerHelper.getAllRecords();
+            populateTableData(resultSet);
 
         } catch(Exception e) {
             System.out.println("Error");
@@ -216,19 +255,17 @@ public class CustomerController {
         try{
             resultSet = actions.searchCustomer(searchInput);
 
-            // need to change this logic of displaying result with respective fields this may cause problem when search result is more than one value
-
-            if(resultSet.next()){
+            if(resultSet.next()) {
                 customer_id_field.setText(resultSet.getString("customer_id"));
                 customer_name_field.setText(resultSet.getString("customer_name"));
                 contact_no_field.setText(resultSet.getString("contact_no"));
                 email_field.setText(resultSet.getString("email"));
-            } else if (!resultSet.isBeforeFirst()) {
+            } else if(!resultSet.isBeforeFirst()) {
                 dialogBoxUtility.showDialogBox(3);
             }
 
-            customers = CustomerHelper.getSearchedList(searchInput);
-            populateTable(customers);
+            ResultSet temp = CustomerHelper.getSearchedList(searchInput);
+            populateTableData(temp);
 
         } catch (Exception e){
             System.out.println("Error");
@@ -236,11 +273,6 @@ public class CustomerController {
         }
 
         clearFields();
-    }
-
-    @FXML
-    void onClear() {
-         clearFields();
     }
 }
 
