@@ -2,6 +2,7 @@ package com.pos.inventorysystem.controllers;
 
 import com.pos.inventorysystem.Model.Product;
 import com.pos.inventorysystem.actions.ProductActions;
+import com.pos.inventorysystem.helpers.GenericSQLHelper;
 import com.pos.inventorysystem.helpers.ProductHelper;
 import com.pos.inventorysystem.utils.ConfigFileManager;
 import com.pos.inventorysystem.utils.DialogBoxUtility;
@@ -14,7 +15,6 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
@@ -43,10 +43,10 @@ public class ProductController {
     private TextField supplierId_field;
 
     @FXML
-    private TableColumn<Product, String> pid;
+    private TableView<Product> product_table;
 
     @FXML
-    private TableView<Product> product_table;
+    private TableColumn<Product, String> serial_no;
 
     @FXML
     private TableColumn<Product, String> supplier_id;
@@ -69,7 +69,6 @@ public class ProductController {
     private ObservableList<Product> products = null;
     private ResultSet resultSet = null;
 
-    //private static final String CREATE_TABLE_QUERY = "CREATE TABLE product (pid INT AUTO_INCREMENT, product_name VARCHAR(45), barcode VARCHAR(12) NOT NULL, price INT DEFAULT 0, quantity INT DEFAULT 0, supplier_id VARCHAR(10) DEFAULT NULL, PRIMARY KEY(barcode), UNIQUE (pid, barcode))";
     private static final String CREATE_TABLE_QUERY = "CREATE TABLE product (product_name VARCHAR(45), barcode VARCHAR(12) NOT NULL, price INT DEFAULT 0, quantity INT DEFAULT 0, supplier_id VARCHAR(10) DEFAULT NULL, PRIMARY KEY(barcode), UNIQUE (barcode))";
 
     DialogBoxUtility dialogBoxUtility = new DialogBoxUtility();
@@ -93,9 +92,11 @@ public class ProductController {
             System.out.println("Database error occurred: " + e.getMessage());
         }
 
+        barcode_field.setPromptText("Paste here the generated barcode");
+        barcode_field.setStyle("-fx-prompt-text-fill: #1a1aff;");
+
         //setting up products table
-        pid.setCellValueFactory(column -> new ReadOnlyObjectWrapper<>(product_table.getItems().indexOf(column.getValue()) + 1).asString());
-        pid.setSortable(false);
+        serial_no.setCellValueFactory(column -> new ReadOnlyObjectWrapper<>(product_table.getItems().indexOf(column.getValue()) + 1).asString());
         product_name.setCellValueFactory(cellData -> cellData.getValue().getProductNameProperty());
         barcode.setCellValueFactory(cellData -> cellData.getValue().getBarcodeProperty());
         price.setCellValueFactory(cellData -> cellData.getValue().getPriceProperty().asObject());
@@ -113,7 +114,7 @@ public class ProductController {
                 p_name.setText(newValue.getProductName());
                 barcode_field.setText(newValue.getBarcode());
                 barcode_field.setEditable(false);
-                barcode_field.setStyle("-fx-text-fill: gray; -fx-background-color: #f4f4f4; -fx-border-width: 1px; -fx-border-color: #ccc;");
+                barcode_field.setStyle("-fx-text-fill: #1a1aff; -fx-background-color: #f4f4f4; -fx-border-width: 1px; -fx-border-color: #ccc;");
                 price_field.setText(String.valueOf(newValue.getPrice()));
                 quantity_field.setText(String.valueOf(newValue.getQuantity()));
                 supplierId_field.setText(newValue.getSupplierId());
@@ -128,8 +129,8 @@ public class ProductController {
     private void clearFields() {
         p_name.clear();
         barcode_field.clear();
-        price_field.setText("0");
-        quantity_field.setText("0");
+        price_field.clear();
+        quantity_field.clear();
         supplierId_field.clear();
     }
 
@@ -141,19 +142,26 @@ public class ProductController {
         int quantity = Integer.parseInt(quantity_field.getText());
         String supplierId = supplierId_field.getText();
 
+        String selectQuery = "SELECT * from product WHERE barcode = ?";
+
         try {
-            if((!name.isEmpty() || !name.isBlank()) && (!barcode.isEmpty() || !barcode.isBlank())) {
-                int result = actions.addNewProduct(name, barcode, price, quantity, supplierId);
-                if(result == 1) {
-                    dialogBoxUtility.showDialogBox(1);
+            // check for duplicate barcode
+            if (GenericSQLHelper.checkDuplicate(selectQuery, barcode)) {
+                if ((!name.isEmpty() || !name.isBlank()) && (!barcode.isEmpty() || !barcode.isBlank())) {
+                    int result = actions.addNewProduct(name, barcode, price, quantity, supplierId);
+                    if (result == 1) {
+                        dialogBoxUtility.showDialogBox(1);
+                    } else {
+                        dialogBoxUtility.showDialogBox(0);
+                    }
                 } else {
-                    dialogBoxUtility.showDialogBox(0);
+                    dialogBoxUtility.showDialogBox(7);
                 }
-                products = ProductHelper.getAllRecords();
-                populateTable(products);
             } else {
-                dialogBoxUtility.showDialogBox(7);
+                dialogBoxUtility.showDialogBox(8);
             }
+            products = ProductHelper.getAllRecords();
+            populateTable(products);
         } catch (Exception e) {
             dialogBoxUtility.showDialogBox(7);
         }
@@ -167,6 +175,7 @@ public class ProductController {
 
         try{
             resultSet = actions.searchProduct(searchInput);
+
             if(resultSet.next()) {
                 p_name.setText(resultSet.getString("product_name"));
                 barcode_field.setText(resultSet.getString("barcode"));
@@ -179,9 +188,12 @@ public class ProductController {
 
             products = ProductHelper.getSearchedList(searchInput);
             populateTable(products);
+
         } catch (Exception e){
             e.printStackTrace();
         }
+
+        clearFields();
     }
 
     @FXML
