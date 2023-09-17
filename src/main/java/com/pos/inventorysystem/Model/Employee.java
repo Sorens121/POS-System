@@ -3,10 +3,10 @@ package com.pos.inventorysystem.Model;
 import javafx.beans.property.SimpleStringProperty;
 
 public class Employee {
-    private SimpleStringProperty employeeId;
-    private SimpleStringProperty employeeName;
-    private SimpleStringProperty contactNo;
-    private SimpleStringProperty email;
+    private final SimpleStringProperty employeeId;
+    private final SimpleStringProperty employeeName;
+    private final SimpleStringProperty contactNo;
+    private final SimpleStringProperty email;
 
     public Employee() {
         this.employeeId = new SimpleStringProperty();
