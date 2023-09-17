@@ -19,7 +19,6 @@ import javafx.scene.layout.StackPane;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.List;
 
 public class CustomerController {
