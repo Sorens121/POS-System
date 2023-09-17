@@ -9,12 +9,19 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 public class EmployeeHelper {
-    public static ObservableList<Employee> getAllRecords() throws ClassNotFoundException, SQLException {
+    public static ObservableList<Employee> getAllEmployeeRecords(ResultSet resultSet) throws SQLException, ClassNotFoundException{
+        try {
+            return getAllEmployeeList(resultSet);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public static ResultSet getAllRecords() throws ClassNotFoundException, SQLException {
         EmployeeActions actions = new EmployeeActions();
         try {
             ResultSet resultSet = actions.getAllEmployees();
-            ObservableList<Employee> list = getAllEmployeeList(resultSet);
-            return list;
+            //ObservableList<Employee> list = getAllEmployeeList(resultSet);
+            return resultSet;
         } catch (SQLException e) {
             System.out.println("Error showing table: " + e.getMessage());
             e.printStackTrace();
@@ -22,12 +29,10 @@ public class EmployeeHelper {
         }
     }
 
-    public static ObservableList<Employee> getSearchedList(String id) throws ClassNotFoundException, SQLException{
+    public static ResultSet getSearchedList(String input) throws ClassNotFoundException, SQLException{
         EmployeeActions actions = new EmployeeActions();
         try{
-            ResultSet resultSet = actions.searchEmployee(id);
-            ObservableList<Employee> list = getAllEmployeeList(resultSet);
-            return list;
+            return actions.searchEmployee(input);
         } catch(SQLException e){
             System.out.println("Error showing table");
             e.printStackTrace();
@@ -41,7 +46,7 @@ public class EmployeeHelper {
             ObservableList<Employee> employeeList = FXCollections.observableArrayList();
             while(resultSet.next()) {
                 Employee employee = new Employee();
-                employee.setEmployeeId(resultSet.getString("eid"));
+                employee.setEmployeeId(resultSet.getString("employee_id"));
                 employee.setEmployeeName(resultSet.getString("employee_name"));
                 employee.setContactNo(resultSet.getString("contact_no"));
                 employee.setEmail(resultSet.getString("email"));

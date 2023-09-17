@@ -122,7 +122,7 @@
                      <children>
                         <TableView fx:id="product_table" prefHeight="465.0" prefWidth="905.0">
                           <columns>
-                            <TableColumn fx:id="pid" prefWidth="112.0" text="ID" />
+                            <TableColumn fx:id="serial_no" prefWidth="112.0" text="Serial No" />
                             <TableColumn fx:id="product_name" prefWidth="185.0" text="Product Name" />
                               <TableColumn fx:id="barcode" minWidth="0.0" prefWidth="156.0" text="Barcode" />
                               <TableColumn fx:id="price" prefWidth="109.0" text="Price" />

@@ -8,13 +8,11 @@ import javafx.collections.ObservableList;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+
 public class CustomerHelper {
-    public static ObservableList<Customer> getAllRecords() throws ClassNotFoundException, SQLException{
-       CustomerActions actions = new CustomerActions();
+    public static ObservableList<Customer> getAllCustomerRecords(ResultSet resultSet) throws ClassNotFoundException, SQLException{
        try{
-           ResultSet resultSet = actions.getAllCustomers();
-           ObservableList<Customer> list = getAllCustomerList(resultSet);
-           return list;
+           return getAllCustomerList(resultSet);
        } catch(SQLException e) {
            System.out.println("Error showing table");
            e.printStackTrace();
@@ -22,12 +20,25 @@ public class CustomerHelper {
        }
    }
 
-    public static ObservableList<Customer> getSearchedList(String input) throws ClassNotFoundException, SQLException{
+   public static ResultSet getAllRecords() throws ClassNotFoundException, SQLException{
+       CustomerActions actions = new CustomerActions();
+       try{
+           ResultSet resultSet = actions.getAllCustomers();
+           //ObservableList<Customer> list = getAllCustomerList(resultSet);
+           return resultSet;
+       } catch(SQLException e) {
+           System.out.println("Error showing table");
+           e.printStackTrace();
+           throw e;
+       }
+   }
+
+    public static ResultSet getSearchedList(String input) throws ClassNotFoundException, SQLException{
         CustomerActions actions = new CustomerActions();
         try{
             ResultSet resultSet = actions.searchCustomer(input);
-            ObservableList<Customer> list = getAllCustomerList(resultSet);
-            return list;
+            //ObservableList<Customer> list = getAllCustomerList(resultSet);
+            return resultSet;
         } catch(SQLException e){
             System.out.println("Error showing table");
             e.printStackTrace();
