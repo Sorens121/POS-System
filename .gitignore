@@ -10,4 +10,4 @@ pom.xml
 **/text
 **/examples
 **/resources/config.properties
-projectOutline.txt
+*.txt
