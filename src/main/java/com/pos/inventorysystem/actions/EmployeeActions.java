@@ -25,7 +25,7 @@ public class EmployeeActions {
         }
     }
 
-    private ResultSet getOneEmployee(String employeeId) {
+    public ResultSet getOneEmployee(String employeeId) {
         query = "SELECT * FROM employee WHERE employee_id = '"+employeeId+"'";
         try{
             s = db.myConnection().createStatement();
@@ -61,7 +61,7 @@ public class EmployeeActions {
 
         while(oldValues.next()) {
             oldName = oldValues.getString("employee_name");
-            oldContact = oldValues.getString("contact");
+            oldContact = oldValues.getString("contact_no");
             oldEmail = oldValues.getString("email");
         }
 
@@ -162,7 +162,6 @@ public class EmployeeActions {
             throw e;
         }
     }
-
 
 
     public Integer deleteEmployee(String employeeId) throws ClassNotFoundException, SQLException {
