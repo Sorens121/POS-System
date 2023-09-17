@@ -1,6 +1,6 @@
 package com.pos.inventorysystem.Model;
 
-import javafx.beans.property.SimpleIntegerProperty;
+import com.mysql.cj.conf.StringProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 public class Customer {
@@ -8,12 +8,21 @@ public class Customer {
     private SimpleStringProperty customerId;
     private SimpleStringProperty contactNumber;
     private SimpleStringProperty email;
+    private SimpleStringProperty[] values;
 
     public Customer() {
         this.customerId = new SimpleStringProperty();
         this.customerName = new SimpleStringProperty();
         this.contactNumber = new SimpleStringProperty();
         this.email = new SimpleStringProperty();
+        this.values = new SimpleStringProperty[]{new SimpleStringProperty()};
+    }
+
+    public Customer(String... values) {
+        this.values = new SimpleStringProperty[values.length];
+        for(int i = 0; i < values.length; i++) {
+            this.values[i] = new SimpleStringProperty(values[i]);
+        }
     }
 
 
@@ -63,5 +72,12 @@ public class Customer {
 
     public void setEmail(String email) {
         this.email.set(email);
+    }
+
+    public SimpleStringProperty getValueAt(int index) {
+        if(index >= 0 && index < values.length){
+            return values[index];
+        }
+        return new SimpleStringProperty("");
     }
 }
