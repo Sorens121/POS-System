@@ -39,7 +39,7 @@ public class ProductActions {
         }
     }
 
-    public Integer addNewProduct(String name, String barcode, int price, int quantity, String supplierId) throws SQLException, ClassNotFoundException{
+    public Integer addNewProduct(String name, String barcode, String price, String quantity, String supplierId) throws SQLException, ClassNotFoundException{
         int output = 0;
         query = "INSERT INTO product (product_name, barcode, price, quantity, supplier_id) VALUES ('"+name+"', '"+barcode+"', '"+price+"', '"+quantity+"', '"+supplierId+"')";
         try {
@@ -53,55 +53,54 @@ public class ProductActions {
         }
     }
 
-    public Integer updateProduct(String barcode, String name, int price, int quantity, String supplierId) throws SQLException, ClassNotFoundException {
+    public Integer updateProduct(String barcode, String name, String price, String quantity, String supplierId) throws SQLException, ClassNotFoundException {
         int output = 0;
         String updateQuery = "UPDATE product SET ";
 
         ResultSet oldValue = getOneProduct(barcode);
 
-        String oldName = null, oldSupplierId = null, state = null;
-        int oldPrice = 0, oldQuantity = 0;
+        String oldName = null, oldSupplierId = null, state = null, oldPrice = null, oldQuantity = null;
         while(oldValue.next()){
             oldName = oldValue.getString("product_name");
-            oldPrice = oldValue.getInt("price");
-            oldQuantity = oldValue.getInt("quantity");
+            oldPrice = oldValue.getString("price");
+            oldQuantity = oldValue.getString("quantity");
             oldSupplierId = oldValue.getString("supplier_id");
         }
 
         //Scenarios 2
         assert oldName != null;
         //NPQS
-        if(!oldName.equalsIgnoreCase(name) && oldPrice != price && oldQuantity != quantity && !oldSupplierId.equalsIgnoreCase(supplierId)){
+        if(!oldName.equalsIgnoreCase(name) && oldPrice.equalsIgnoreCase(price) && oldQuantity.equalsIgnoreCase(quantity) && !oldSupplierId.equalsIgnoreCase(supplierId)){
             updateQuery += "product_name = ?, price = ?, quantity = ?, supplier_id = ? WHERE barcode = ?";
             state = "1";
         }
         //NPQ
-        else if(!oldName.equalsIgnoreCase(name) && oldPrice != price && oldQuantity != quantity){
+        else if(!oldName.equalsIgnoreCase(name) && oldPrice.equalsIgnoreCase(price) && oldQuantity.equalsIgnoreCase(quantity)){
             updateQuery += "product_name = ?, price = ?, quantity = ? WHERE barcode = ?";
             state = "2";
         }
         //NPS
-        else if(!oldName.equalsIgnoreCase(name) && oldPrice != price && !oldSupplierId.equalsIgnoreCase(supplierId)) {
+        else if(!oldName.equalsIgnoreCase(name) && oldPrice.equalsIgnoreCase(price) && !oldSupplierId.equalsIgnoreCase(supplierId)) {
             updateQuery += "product_name = ?, price = ?, supplier_id = ? WHERE barcode = ?";
             state = "3";
         }
         //NQS
-        else if(!oldName.equalsIgnoreCase(name) && oldQuantity != quantity && !oldSupplierId.equalsIgnoreCase(supplierId)) {
+        else if(!oldName.equalsIgnoreCase(name) && oldQuantity.equalsIgnoreCase(quantity) && !oldSupplierId.equalsIgnoreCase(supplierId)) {
             updateQuery += "product_name = ?, quantity = ?, supplier_id = ? WHERE barcode = ?";
             state = "4";
         }
         //PQS
-        else if(oldPrice != price && oldQuantity != quantity && !oldSupplierId.equalsIgnoreCase(supplierId)) {
+        else if(oldPrice.equalsIgnoreCase(price) && oldQuantity.equalsIgnoreCase(quantity) && !oldSupplierId.equalsIgnoreCase(supplierId)) {
             updateQuery += "price = ?, quantity = ?, supplier_id = ? WHERE barcode = ?";
             state = "5";
         }
         //NQ
-        else if(!oldName.equalsIgnoreCase(name) && oldQuantity != quantity ) {
+        else if(!oldName.equalsIgnoreCase(name) && oldQuantity.equalsIgnoreCase(quantity) ) {
             updateQuery += "product_name = ?, quantity = ? WHERE barcode = ?";
             state = "6";
         }
         //NP
-        else if(!oldName.equalsIgnoreCase(name) && oldPrice != price ) {
+        else if(!oldName.equalsIgnoreCase(name) && oldPrice.equalsIgnoreCase(price)) {
             updateQuery += "product_name = ?, price = ? WHERE barcode = ?";
             state = "7";
         }
@@ -111,17 +110,17 @@ public class ProductActions {
             state = "8";
         }
         //PQ
-        else if(oldPrice != price && oldQuantity != quantity) {
+        else if(oldPrice.equalsIgnoreCase(price) && oldQuantity.equalsIgnoreCase(quantity)) {
             updateQuery += "price = ?, quantity = ? WHERE barcode = ?";
             state = "9";
         }
         //PS
-        else if(oldPrice != price && !oldSupplierId.equalsIgnoreCase(supplierId)) {
+        else if(oldPrice.equalsIgnoreCase(price) && !oldSupplierId.equalsIgnoreCase(supplierId)) {
             updateQuery += "price = ?, supplier_id = ? WHERE barcode = ?";
             state = "10";
         }
         //QS
-        else if(oldQuantity != quantity && !oldSupplierId.equalsIgnoreCase(supplierId)) {
+        else if(oldQuantity.equalsIgnoreCase(quantity) && !oldSupplierId.equalsIgnoreCase(supplierId)) {
             updateQuery += "quantity = ?, supplier_id = ? WHERE barcode = ?";
             state = "11";
         }
@@ -131,12 +130,12 @@ public class ProductActions {
             state = "12";
         }
         //P
-        else if(oldPrice != price){
+        else if(oldPrice.equalsIgnoreCase(price)){
             updateQuery += "price = ? WHERE barcode = ?";
             state = "13";
         }
         //Q
-        else if(oldQuantity != quantity){
+        else if(oldQuantity.equalsIgnoreCase(quantity)){
             updateQuery += "quantity = ? WHERE barcode = ?";
             state = "14";
         }
@@ -151,8 +150,8 @@ public class ProductActions {
                 switch (state){
                     case "1":
                         ps.setString(1, name);
-                        ps.setInt(2, price);
-                        ps.setInt(3, quantity);
+                        ps.setString(2, price);
+                        ps.setString(3, quantity);
                         ps.setString(4, supplierId);
                         ps.setString(5, barcode);
                         System.out.println("Scenario 1");
@@ -160,15 +159,15 @@ public class ProductActions {
                     case "2":
                         //NPQ
                         ps.setString(1, name);
-                        ps.setInt(2, price);
-                        ps.setInt(3, quantity);
+                        ps.setString(2, price);
+                        ps.setString(3, quantity);
                         ps.setString(4, barcode);
                         System.out.println("Scenario 2");
                         break;
                     case "3":
                         //NPS
                         ps.setString(1, name);
-                        ps.setInt(2, price);
+                        ps.setString(2, price);
                         ps.setString(3, supplierId);
                         ps.setString(4, barcode);
                         System.out.println("Scenario 3");
@@ -177,7 +176,7 @@ public class ProductActions {
                     case "4":
                         //NQS
                         ps.setString(1, name);
-                        ps.setInt(2, quantity);
+                        ps.setString(2, quantity);
                         ps.setString(3, supplierId);
                         ps.setString(4, barcode);
                         System.out.println("Scenario 4");
@@ -185,8 +184,8 @@ public class ProductActions {
 
                     case "5":
                         //PQS
-                        ps.setInt(1, price);
-                        ps.setInt(2, quantity);
+                        ps.setString(1, price);
+                        ps.setString(2, quantity);
                         ps.setString(3, supplierId);
                         ps.setString(4, barcode);
                         System.out.println("Scenario 5");
@@ -195,7 +194,7 @@ public class ProductActions {
                     case "6":
                         //NQ
                         ps.setString(1, name);
-                        ps.setInt(2, quantity);
+                        ps.setString(2, quantity);
                         ps.setString(3, barcode);
                         System.out.println("Scenario 6");
                         break;
@@ -203,7 +202,7 @@ public class ProductActions {
                     case "7":
                         //NP
                         ps.setString(1, name);
-                        ps.setInt(2, price);
+                        ps.setString(2, price);
                         ps.setString(3, barcode);
                         System.out.println("Scenario 7");
                         break;
@@ -218,15 +217,15 @@ public class ProductActions {
 
                     case "9":
                         //PQ
-                        ps.setInt(1, price);
-                        ps.setInt(2, quantity);
+                        ps.setString(1, price);
+                        ps.setString(2, quantity);
                         ps.setString(3, barcode);
                         System.out.println("Scenario 9");
                         break;
 
                     case "10":
                         //PS
-                        ps.setInt(1, price);
+                        ps.setString(1, price);
                         ps.setString(2, supplierId);
                         ps.setString(3, barcode);
                         System.out.println("Scenario 10");
@@ -235,8 +234,8 @@ public class ProductActions {
                     case "11":
                         //QS
                         ps.setString(1, name);
-                        ps.setInt(2, price);
-                        ps.setInt(3, quantity);
+                        ps.setString(2, price);
+                        ps.setString(3, quantity);
                         ps.setString(4, barcode);
                         System.out.println("Scenario 11");
                         break;
@@ -250,14 +249,14 @@ public class ProductActions {
 
                     case "13":
                         //P
-                        ps.setInt(1, price);
+                        ps.setString(1, price);
                         ps.setString(2, barcode);
                         System.out.println("Scenario 13");
                         break;
 
                     case "14":
                         //Q
-                        ps.setInt(1, quantity);
+                        ps.setString(1, quantity);
                         ps.setString(2, barcode);
                         System.out.println("Scenario 14");
                         break;

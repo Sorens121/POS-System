@@ -17,11 +17,13 @@ import javafx.scene.Scene;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public class ProductController {
     @FXML
@@ -43,33 +45,15 @@ public class ProductController {
     private TextField supplierId_field;
 
     @FXML
-    private TableView<Product> product_table;
+    private StackPane tableArea;
 
-    @FXML
-    private TableColumn<Product, String> serial_no;
-
-    @FXML
-    private TableColumn<Product, String> supplier_id;
-
-    @FXML
-    private TableColumn<Product, String> product_name;
-
-    @FXML
-    private TableColumn<Product, String> barcode;
-
-    @FXML
-    private TableColumn<Product, Integer> quantity;
-
-    @FXML
-    private TableColumn<Product, Integer> price;
-
-    @FXML
-    private BarcodeController barcodeController;
 
     private ObservableList<Product> products = null;
     private ResultSet resultSet = null;
 
-    private static final String CREATE_TABLE_QUERY = "CREATE TABLE product (product_name VARCHAR(45), barcode VARCHAR(12) NOT NULL, price INT DEFAULT 0, quantity INT DEFAULT 0, supplier_id VARCHAR(10) DEFAULT NULL, PRIMARY KEY(barcode), UNIQUE (barcode))";
+    private static final String CREATE_TABLE_QUERY = "CREATE TABLE product (barcode VARCHAR(12) NOT NULL, product_name VARCHAR(45), price VARCHAR(5) DEFAULT 0, quantity VARCHAR(5) DEFAULT 0, supplier_id VARCHAR(10) DEFAULT NULL, PRIMARY KEY(barcode), UNIQUE (barcode))";
+
+    private final TableView<Product> productTable = new TableView<>();
 
     DialogBoxUtility dialogBoxUtility = new DialogBoxUtility();
     ProductActions actions = new ProductActions();
@@ -96,34 +80,58 @@ public class ProductController {
         barcode_field.setStyle("-fx-prompt-text-fill: #1a1aff;");
 
         //setting up products table
-        serial_no.setCellValueFactory(column -> new ReadOnlyObjectWrapper<>(product_table.getItems().indexOf(column.getValue()) + 1).asString());
-        product_name.setCellValueFactory(cellData -> cellData.getValue().getProductNameProperty());
-        barcode.setCellValueFactory(cellData -> cellData.getValue().getBarcodeProperty());
-        price.setCellValueFactory(cellData -> cellData.getValue().getPriceProperty().asObject());
-        quantity.setCellValueFactory(cellData -> cellData.getValue().getQuantityProperty().asObject());
-        supplier_id.setCellValueFactory(cellData -> cellData.getValue().getSupplierIdProperty());
-
-        products = ProductHelper.getAllRecords();
-        populateTable(products);
+        resultSet = ProductHelper.getAllRecords();
+        initializeTable(resultSet);
+        populateTableData(resultSet);
 
         //System.out.print("Table data: " + product_name + barcode + price + quantity + supplier_id);
 
         //display details in their respective fields when items are selected from the table
-        product_table.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+        productTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue != null) {
                 p_name.setText(newValue.getProductName());
                 barcode_field.setText(newValue.getBarcode());
                 barcode_field.setEditable(false);
                 barcode_field.setStyle("-fx-text-fill: #1a1aff; -fx-background-color: #f4f4f4; -fx-border-width: 1px; -fx-border-color: #ccc;");
-                price_field.setText(String.valueOf(newValue.getPrice()));
-                quantity_field.setText(String.valueOf(newValue.getQuantity()));
+                price_field.setText(newValue.getPrice());
+                quantity_field.setText(newValue.getQuantity());
                 supplierId_field.setText(newValue.getSupplierId());
             }
         });
     }
 
-    private void populateTable(ObservableList<Product> products) {
-        product_table.setItems(products);
+    @SuppressWarnings("unchecked")
+    private void initializeTable(ResultSet resultSet) {
+        TableColumn<Product, Integer> serial_no = new TableColumn<>("Serial No".toUpperCase());
+        TableColumn<Product, String> product_id= TableUtility.createTableColumn("Barcode".toUpperCase(), Product::getBarcode);
+        TableColumn<Product, String> product_name = TableUtility.createTableColumn("product name".toUpperCase(), Product::getProductName);
+        TableColumn<Product, String> price = TableUtility.createTableColumn("price".toUpperCase(), Product::getPrice);
+        TableColumn<Product, String> quantity = TableUtility.createTableColumn("quantity".toUpperCase(), Product::getQuantity);
+        TableColumn<Product, String> supplier_id = TableUtility.createTableColumn("supplier id".toUpperCase(), Product::getSupplierId);
+
+        if(resultSet != null) {
+            serial_no.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(productTable.getItems().indexOf(cellData.getValue()) + 1));
+        }
+
+        serial_no.setPrefWidth(80);
+        product_id.setPrefWidth(150);
+        product_name.setPrefWidth(200);
+        price.setPrefWidth(50);
+        quantity.setPrefWidth(80);
+        supplier_id.setPrefWidth(150);
+
+        productTable.getColumns().addAll(serial_no, product_name, product_id, price, quantity, supplier_id);
+        tableArea.getChildren().add(productTable);
+    }
+
+
+    private void populateTableData(ResultSet resultSet) throws SQLException, ClassNotFoundException{
+        try{
+            ObservableList<Product> products = ProductHelper.getAllProductRecords(resultSet);
+            productTable.setItems(products);
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
     private void clearFields() {
@@ -136,32 +144,33 @@ public class ProductController {
 
     @FXML
     void onSave(ActionEvent event) throws IOException {
-        String name = p_name.getText();
-        String barcode = barcode_field.getText();
-        int price = Integer.parseInt(price_field.getText());
-        int quantity = Integer.parseInt(quantity_field.getText());
-        String supplierId = supplierId_field.getText();
+        String name = p_name.getText().trim();
+        String barcode = barcode_field.getText().trim();
+        String price = price_field.getText().trim();
+        String quantity = quantity_field.getText().trim();
+        String supplierId = supplierId_field.getText().trim();
 
         String selectQuery = "SELECT * from product WHERE barcode = ?";
 
         try {
             // check for duplicate barcode
-            if (GenericSQLHelper.checkDuplicate(selectQuery, barcode)) {
-                if ((!name.isEmpty() || !name.isBlank()) && (!barcode.isEmpty() || !barcode.isBlank())) {
-                    int result = actions.addNewProduct(name, barcode, price, quantity, supplierId);
-                    if (result == 1) {
-                        dialogBoxUtility.showDialogBox(1);
-                    } else {
-                        dialogBoxUtility.showDialogBox(0);
-                    }
+            boolean checkDuplicate = GenericSQLHelper.checkDuplicate(selectQuery, barcode);
+
+            if(name.isBlank() || barcode.isBlank() || supplierId.isBlank() || price.isBlank() || quantity.isBlank()){
+                dialogBoxUtility.showDialogBox(7);
+            } else if (checkDuplicate) {
+                int result = actions.addNewProduct(name, barcode, price, quantity, supplierId);
+                if (result == 1) {
+                    dialogBoxUtility.showDialogBox(1);
                 } else {
-                    dialogBoxUtility.showDialogBox(7);
+                    dialogBoxUtility.showDialogBox(0);
                 }
             } else {
                 dialogBoxUtility.showDialogBox(8);
             }
-            products = ProductHelper.getAllRecords();
-            populateTable(products);
+
+            resultSet = ProductHelper.getAllRecords();
+            populateTableData(resultSet);
         } catch (Exception e) {
             dialogBoxUtility.showDialogBox(7);
         }
@@ -179,15 +188,15 @@ public class ProductController {
             if(resultSet.next()) {
                 p_name.setText(resultSet.getString("product_name"));
                 barcode_field.setText(resultSet.getString("barcode"));
-                price_field.setText(String.valueOf(resultSet.getInt("price")));
-                quantity_field.setText(String.valueOf(resultSet.getInt("quantity")));
+                price_field.setText(resultSet.getString("price"));
+                quantity_field.setText(resultSet.getString("quantity"));
                 supplierId_field.setText(resultSet.getString("supplier_id"));
             } else if(!resultSet.isBeforeFirst()) {
                 dialogBoxUtility.showDialogBox(3);
             }
 
-            products = ProductHelper.getSearchedList(searchInput);
-            populateTable(products);
+            ResultSet temp = ProductHelper.getSearchedList(searchInput);
+            populateTableData(temp);
 
         } catch (Exception e){
             e.printStackTrace();
@@ -198,28 +207,36 @@ public class ProductController {
 
     @FXML
     void onUpdate(ActionEvent event) throws SQLException, ClassNotFoundException {
-        String name = p_name.getText();
-        String barcode = barcode_field.getText();
-        int price = Integer.parseInt(price_field.getText());
-        int quantity = Integer.parseInt(quantity_field.getText());
-        String supplierId = supplierId_field.getText();
+        String name = p_name.getText().trim();
+        String barcode = barcode_field.getText().trim();
+        String price = price_field.getText().trim();
+        String quantity = quantity_field.getText().trim();
+        String supplierId = supplierId_field.getText().trim();
 
         //System.out.println("Values: " + name + " " + barcode + " " + price + " " + quantity + " " + supplierId);
+        List<String> params = List.of(name, price, quantity, supplierId);
+        String query = "SELECT * FROM product WHERE barcode = ?";
 
         try{
+            boolean updateRequired = GenericSQLHelper.shouldUpdateRow(query, barcode, params);
             int result = 0;
-            result = actions.updateProduct(barcode, name, price, quantity, supplierId);
-
-            if (result == 2) {
-                dialogBoxUtility.showDialogBox(2);
-                products = ProductHelper.getAllRecords();
-                populateTable(products);
-            } else if (result == 0) {
-                dialogBoxUtility.showDialogBox(0);
-            } else {
+            if(name.isBlank() || barcode.isBlank() || supplierId.isBlank()){
                 dialogBoxUtility.showDialogBox(7);
-            }
+            } else if(updateRequired){
+                result = actions.updateProduct(barcode, name, price, quantity, supplierId);
 
+                if (result == 2) {
+                    dialogBoxUtility.showDialogBox(2);
+                    resultSet = ProductHelper.getAllRecords();
+                    populateTableData(resultSet);
+                } else if (result == 0) {
+                    dialogBoxUtility.showDialogBox(0);
+                } else {
+                    dialogBoxUtility.showDialogBox(7);
+                }
+            } else {
+                dialogBoxUtility.showDialogBox(8);
+            }
         } catch(SQLException | ClassNotFoundException | IOException e) {
             e.printStackTrace();
         }
@@ -237,8 +254,8 @@ public class ProductController {
                 dialogBoxUtility.showDialogBox(5);
             }
 
-            products = ProductHelper.getAllRecords();
-            populateTable(products);
+            resultSet = ProductHelper.getAllRecords();
+            populateTableData(resultSet);
 
         } catch(Exception e) {
             System.out.println("Error");

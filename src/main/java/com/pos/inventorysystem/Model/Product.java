@@ -4,17 +4,17 @@ import javafx.beans.property.SimpleIntegerProperty;
 import javafx.beans.property.SimpleStringProperty;
 
 public class Product {
-    private SimpleStringProperty productName;
-    private SimpleStringProperty barcode;
-    private SimpleIntegerProperty price;
-    private SimpleIntegerProperty quantity;
-    private SimpleStringProperty supplierId;
+    private final SimpleStringProperty productName;
+    private final SimpleStringProperty barcode;
+    private final SimpleStringProperty price;
+    private final SimpleStringProperty quantity;
+    private final SimpleStringProperty supplierId;
 
     public Product() {
         this.productName = new SimpleStringProperty();
         this.barcode = new SimpleStringProperty();
-        this.price = new SimpleIntegerProperty();
-        this.quantity = new SimpleIntegerProperty();
+        this.price = new SimpleStringProperty();
+        this.quantity = new SimpleStringProperty();
         this.supplierId = new SimpleStringProperty();
     }
 
@@ -42,27 +42,27 @@ public class Product {
         this.barcode.set(barcode);
     }
 
-    public int getPrice() {
+    public String getPrice() {
         return price.get();
     }
 
-    public SimpleIntegerProperty getPriceProperty() {
+    public SimpleStringProperty getPriceProperty() {
         return price;
     }
 
-    public void setPrice(int price) {
+    public void setPrice(String price) {
         this.price.set(price);
     }
 
-    public int getQuantity() {
+    public String getQuantity() {
         return quantity.get();
     }
 
-    public SimpleIntegerProperty getQuantityProperty() {
+    public SimpleStringProperty getQuantityProperty() {
         return quantity;
     }
 
-    public void setQuantity(int quantity) {
+    public void setQuantity(String quantity) {
         this.quantity.set(quantity);
     }
 
