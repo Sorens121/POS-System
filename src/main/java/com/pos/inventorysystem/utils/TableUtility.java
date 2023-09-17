@@ -1,8 +1,14 @@
 package com.pos.inventorysystem.utils;
 
 import com.pos.inventorysystem.db.db;
+import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.ObservableList;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 
 import java.sql.*;
+import java.util.function.Function;
 
 public class TableUtility {
 
@@ -39,5 +45,17 @@ public class TableUtility {
         } catch(SQLException | ClassNotFoundException e){
             e.printStackTrace();
         }
+    }
+
+    public static <S, T>TableColumn<S, T> createTableColumn(String columnName, Function<S, T> valueExtractor) {
+        TableColumn<S, T> column = new TableColumn<>(columnName);
+        column.setCellValueFactory(cellData -> {
+            S rowData = cellData.getValue();
+            T value = valueExtractor.apply(rowData);
+
+            return new SimpleObjectProperty<>(value);
+        });
+
+        return column;
     }
 }
