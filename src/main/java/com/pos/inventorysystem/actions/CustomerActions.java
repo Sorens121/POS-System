@@ -93,7 +93,7 @@ public class CustomerActions {
         }
         //N
         else if (!oldName.equalsIgnoreCase(name)) {
-            updateQuery += "contact_name = ? WHERE customer_id = ?";
+            updateQuery += "customer_name = ? WHERE customer_id = ?";
             state = "5";
         }
         //C
