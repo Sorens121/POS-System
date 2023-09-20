@@ -3,14 +3,18 @@ package com.pos.inventorysystem.Model;
 import javafx.beans.property.SimpleStringProperty;
 
 public class Supplier {
-    private SimpleStringProperty supplierId;
-    private SimpleStringProperty supplierName;
-    private SimpleStringProperty supplierTpNo;
+    private final SimpleStringProperty supplierId;
+    private final SimpleStringProperty supplierName;
+    private final SimpleStringProperty supplierContactNo;
+    private final SimpleStringProperty supplierEmail;
+    private final SimpleStringProperty companyName;
 
     public Supplier() {
         this.supplierId = new SimpleStringProperty();
         this.supplierName = new SimpleStringProperty();
-        this.supplierTpNo = new SimpleStringProperty();
+        this.supplierContactNo = new SimpleStringProperty();
+        this.supplierEmail = new SimpleStringProperty();
+        this.companyName = new SimpleStringProperty();
     }
 
     public String getSupplierId() {
@@ -37,15 +41,39 @@ public class Supplier {
         this.supplierName.set(supplierName);
     }
 
-    public String getSupplierTpNo() {
-        return supplierTpNo.get();
+    public String getSupplierContactNo() {
+        return supplierContactNo.get();
     }
 
-    public SimpleStringProperty getSupplierTpNoProperty() {
-        return supplierTpNo;
+    public SimpleStringProperty getSupplierContactNoProperty() {
+        return supplierContactNo;
     }
 
-    public void setSupplierTpNo(String supplierTpNo) {
-        this.supplierTpNo.set(supplierTpNo);
+    public void setSupplierContactNo(String supplierContactNo) {
+        this.supplierContactNo.set(supplierContactNo);
+    }
+
+    public String getSupplierEmail() {
+        return supplierEmail.get();
+    }
+
+    public SimpleStringProperty getSupplierEmailProperty() {
+        return supplierEmail;
+    }
+
+    public void setSupplierEmail(String supplierEmail) {
+        this.supplierEmail.set(supplierEmail);
+    }
+
+    public String getCompanyName() {
+        return companyName.get();
+    }
+
+    public SimpleStringProperty getCompanyNameProperty() {
+        return companyName;
+    }
+
+    public void setCompanyName(String companyName) {
+        this.companyName.set(companyName);
     }
 }

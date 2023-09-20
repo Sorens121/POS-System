@@ -57,6 +57,25 @@ public class GenericUtils {
         return "20" + prefix + randomNUmber + suffix;
     }
 
+    public static String GenerateSupplierId() {
+        Random random = new Random();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyss");
+        String originalString = LocalDateTime.now().format(formatter);
+        long randomNUmber = generateRandomNumberFourPlace(random);
+        int splitIndex = 2;
+        String prefix = originalString.substring(0, splitIndex);
+        String suffix = originalString.substring(splitIndex);
+
+        return prefix + randomNUmber + suffix;
+    }
+
+    private static long generateRandomNumberFourPlace(Random random) {
+        long lowerBound = 1000L;
+        long upperBound = 9999L;
+
+        return lowerBound + (long) (random.nextDouble() * (upperBound - lowerBound));
+    }
+
     private static long generateRandomNumber(Random random) {
         long lowerBound = 100000L;
         long upperBound = 999999L;

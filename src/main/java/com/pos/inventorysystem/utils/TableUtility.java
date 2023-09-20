@@ -1,13 +1,12 @@
 package com.pos.inventorysystem.utils;
 
 import com.pos.inventorysystem.db.db;
-import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.collections.ObservableList;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.function.Function;
 
 public class TableUtility {
