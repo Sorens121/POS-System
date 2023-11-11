@@ -17,7 +17,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -46,14 +45,13 @@ public class SupplierController {
     private final TableView<Supplier> supplierTable = new TableView<>();
 
     private static final String CREATE_TABLE_QUERY = "CREATE TABLE supplier (supplier_id VARCHAR(10) NOT NULL, supplier_name VARCHAR(45), contact VARCHAR(10), email VARCHAR(45), company_name VARCHAR(45), PRIMARY KEY (supplier_id), UNIQUE(supplier_id))";
-    private ObservableList<Supplier> suppliers = null;
-    private ResultSet resultSet = null;
+    private ObservableList<Supplier> tableData = null;
 
     DialogBoxUtility dialogBoxUtility = new DialogBoxUtility();
     SupplierActions actions = new SupplierActions();
 
    @FXML
-   public void initialize() throws SQLException, ClassNotFoundException {
+   public void initialize() throws SQLException {
        ConfigFileManager configFileManager = new ConfigFileManager();
        try {
            //check if table exists
@@ -67,7 +65,7 @@ public class SupplierController {
            } else {
                System.out.println("Table already exist");
            }
-       } catch (SQLException | ClassNotFoundException e){
+       } catch (SQLException e){
            System.out.println("Database error occurred: " + e.getMessage());
        }
 
@@ -76,9 +74,9 @@ public class SupplierController {
        supplier_id_field.setPromptText("This field is auto generated");
        supplier_id_field.setStyle("-fx-prompt-text-fill: #1a1aff; -fx-background-color: #f4f4f4; -fx-border-width: 1px; -fx-border-color: #ccc;");
 
-       resultSet = SupplierHelper.getAllRecords();
-       initializeTable(resultSet);
-       populateTableData(resultSet);
+       tableData = SupplierHelper.getAllSuppliersList();
+       initializeTable(tableData);
+       populateTableData(tableData);
 
        //click on the table rows and the values are displayed in their respective fields
        supplierTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -93,7 +91,7 @@ public class SupplierController {
    }
 
    @SuppressWarnings("unchecked")
-   public void initializeTable(ResultSet resultSet) {
+   public void initializeTable(ObservableList<Supplier> data) {
        TableColumn<Supplier, Integer> serial_no = new TableColumn<>("Serial No".toUpperCase());
        TableColumn<Supplier, String> supplier_id = TableUtility.createTableColumn("Supplier Id".toUpperCase(), Supplier::getSupplierId);
        TableColumn<Supplier, String> supplier_name = TableUtility.createTableColumn("supplier name".toUpperCase(), Supplier::getSupplierName);
@@ -101,7 +99,7 @@ public class SupplierController {
        TableColumn<Supplier, String> email = TableUtility.createTableColumn("email".toUpperCase(), Supplier::getSupplierEmail);
        TableColumn<Supplier, String> company_name = TableUtility.createTableColumn("company".toUpperCase(), Supplier::getCompanyName);
 
-       if(resultSet != null) { // setting up the serial_no column
+       if(data != null) { // setting up the serial_no column
            serial_no.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(supplierTable.getItems().indexOf(cellData.getValue()) + 1));
        }
 
@@ -116,14 +114,9 @@ public class SupplierController {
        tableArea.getChildren().add(supplierTable);
    }
 
-    private void populateTableData(ResultSet resultSet) throws SQLException {
+    private void populateTableData(ObservableList<Supplier> data) {
        //populating table with data
-        try {
-            ObservableList<Supplier> suppliers = SupplierHelper.getAllSupplierRecords(resultSet);
-            supplierTable.setItems(suppliers);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        supplierTable.setItems(data);
     }
 
     @FXML
@@ -160,7 +153,7 @@ public class SupplierController {
             if(name.isBlank() || contact.isBlank() || email.isBlank() || company.isBlank()) {
                 dialogBoxUtility.showDialogBox(7);
             } else if(checkDuplicate) {
-                int result = actions.createNewSupplier(supplierId, name, contact, email, company);
+                int result = actions.createNewRecord(supplierId, name, contact, email, company);
                 if(result == 1) {
                     dialogBoxUtility.showDialogBox(1);
                 } else {
@@ -170,8 +163,8 @@ public class SupplierController {
                 dialogBoxUtility.showDialogBox(8);
             }
 
-            resultSet = SupplierHelper.getAllRecords();
-            populateTableData(resultSet);
+            tableData = SupplierHelper.getAllSuppliersList();
+            populateTableData(tableData);
 
         } catch (Exception e) {
             System.out.println("Error from controller class: " + e.getMessage());
@@ -185,28 +178,28 @@ public class SupplierController {
     void onSearch(ActionEvent event) {
         String searchInput = search_field.getText().trim();
 
-            try {
-                resultSet = actions.searchSupplier(searchInput);
+        try {
+            tableData = SupplierHelper.getAllSearchedList(searchInput);
+            populateTableData(tableData);
 
-                if(resultSet.next()) {
-                    supplier_id_field.setText(resultSet.getString("supplier_id"));
-                    name_field.setText(resultSet.getString("supplier_name"));
-                    contact_no_field.setText(resultSet.getString("contact"));
-                    email_field.setText(resultSet.getString("email"));
-                    company_name_field.setText(resultSet.getString("company_name"));
-                } else if(!resultSet.isBeforeFirst()) {
-                    dialogBoxUtility.showDialogBox(3);
-                }
-
-                ResultSet temp = SupplierHelper.getSearchedList(searchInput);
-                populateTableData(temp);
-
-            } catch (Exception e) {
-                System.out.println("Error");
-                e.printStackTrace();
+            //setting data to respective fields
+            if (tableData != null) {
+                supplier_id_field.setText(tableData.get(0).getSupplierId());
+                name_field.setText(tableData.get(0).getSupplierName());
+                contact_no_field.setText(tableData.get(0).getSupplierContactNo());
+                email_field.setText(tableData.get(0).getSupplierEmail());
+                company_name_field.setText(tableData.get(0).getCompanyName());
+            } else {
+                dialogBoxUtility.showDialogBox(3);
             }
 
-            clearFields();
+
+        } catch (Exception e) {
+            System.out.println("Error");
+            e.printStackTrace();
+        }
+
+        clearFields();
     }
 
 
@@ -229,12 +222,13 @@ public class SupplierController {
             if (name.isBlank() || contact.isBlank() || email.isBlank() || company.isBlank()) {
                 dialogBoxUtility.showDialogBox(7);
             } else if (updateRequired) {
-                result = actions.updateSupplier(supplierId, name, contact, email, company);
+                // need to check for unchanged values and null before running the queries
+                result = actions.updateRecord(supplierId, name, contact, email, company);
 
                 if (result == 2) {
                     dialogBoxUtility.showDialogBox(2);
-                    resultSet = SupplierHelper.getAllRecords();
-                    populateTableData(resultSet);
+                    tableData = SupplierHelper.getAllSuppliersList();
+                    populateTableData(tableData);
                 } else if(result == 0){
                     dialogBoxUtility.showDialogBox(0);
                 } else {
@@ -257,15 +251,15 @@ public class SupplierController {
         String deleteItem = supplier_id_field.getText().trim();
 
         try{
-            int result = actions.deleteSupplier(deleteItem);
+            int result = actions.deleteRecord(deleteItem);
             if(result == 4) {
                 dialogBoxUtility.showDialogBox(4);
             } else{
                 dialogBoxUtility.showDialogBox(5);
             }
 
-            resultSet = SupplierHelper.getAllRecords();
-            populateTableData(resultSet);
+            tableData = SupplierHelper.getAllSuppliersList();
+            populateTableData(tableData);
 
         } catch(Exception e) {
             System.out.println("Error from controller class: " + e.getMessage());

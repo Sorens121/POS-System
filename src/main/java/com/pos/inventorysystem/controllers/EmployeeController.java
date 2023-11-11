@@ -44,9 +44,7 @@ public class EmployeeController {
 
     private final static String CREATE_TABLE_QUERY = "CREATE TABLE employee (employee_id VARCHAR(12) NOT NULL, employee_name VARCHAR(45), contact_no VARCHAR(10), email VARCHAR(45), PRIMARY KEY(employee_id), UNIQUE(contact_no, email))";
 
-    private ObservableList<Employee> employees = null;
-
-    private ResultSet resultSet = null;
+    private ObservableList<Employee> tableData = null;
 
     DialogBoxUtility dialogBoxUtility = new DialogBoxUtility();
     EmployeeActions actions = new EmployeeActions();
@@ -54,7 +52,7 @@ public class EmployeeController {
     private final TableView<Employee> employeeTable = new TableView<>();
 
     @FXML
-    public void initialize() throws ClassNotFoundException, SQLException {
+    public void initialize() throws SQLException {
         ConfigFileManager configFileManager = new ConfigFileManager();
 
         try {
@@ -69,7 +67,7 @@ public class EmployeeController {
             } else {
                 System.out.println("Table already exist");
             }
-        } catch (SQLException | ClassNotFoundException e){
+        } catch (SQLException e){
             System.out.println("Database error occurred: " + e.getMessage());
         }
 
@@ -78,9 +76,9 @@ public class EmployeeController {
         employee_id_field.setPromptText("This field is auto generated");
         employee_id_field.setStyle("-fx-prompt-text-fill: #1a1aff; -fx-background-color: #f4f4f4; -fx-border-width: 1px; -fx-border-color: #ccc;");
 
-        resultSet = EmployeeHelper.getAllRecords();
-        initializeTable(resultSet);
-        populateTableData(resultSet);
+        tableData = EmployeeHelper.getAllRecords();
+        initializeTable(tableData);
+        populateTableData(tableData);
 
         //click on the items of the table and the data is displayed is the respective text fields
         employeeTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -96,14 +94,14 @@ public class EmployeeController {
     }
 
     @SuppressWarnings("unchecked")
-    private void initializeTable(ResultSet resultSet) {
+    private void initializeTable(ObservableList<Employee> data) {
         TableColumn<Employee, Integer> serial_no = new TableColumn<>("Serial No".toUpperCase());
         TableColumn<Employee, String> employee_id = TableUtility.createTableColumn("Employee Id".toUpperCase(), Employee::getEmployeeId);
         TableColumn<Employee, String> employee_name = TableUtility.createTableColumn("Employee Name".toUpperCase(), Employee::getEmployeeName);
         TableColumn<Employee, String> contact = TableUtility.createTableColumn("Contact No".toUpperCase(), Employee::getContactNo);
         TableColumn<Employee, String> email = TableUtility.createTableColumn("Email".toUpperCase(), Employee::getEmail);
 
-        if(resultSet != null) {
+        if(data != null) {
             serial_no.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(employeeTable.getItems().indexOf(cellData.getValue()) + 1 ));
         }
 
@@ -117,14 +115,9 @@ public class EmployeeController {
         tableArea.getChildren().add(employeeTable);
     }
 
-    private void populateTableData(ResultSet resultSet) throws SQLException, ClassNotFoundException {
+    private void populateTableData(ObservableList<Employee> data){
         //populate table with data
-        try {
-            ObservableList<Employee> employees = EmployeeHelper.getAllEmployeeRecords(resultSet);
-            employeeTable.setItems(employees);
-        } catch (SQLException |ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+        employeeTable.setItems(data);
     }
 
     @FXML
@@ -161,7 +154,7 @@ public class EmployeeController {
             if(name.isBlank() || contact.isBlank() || email.isBlank()){
                 dialogBoxUtility.showDialogBox(7);
             }else if(checkDuplicate){// if true then only save data
-                int result = actions.createNewEmployee(id, name, contact, email);
+                int result = actions.createNewRecord(id, name, contact, email);
 
                 if (result == 1) {
                     dialogBoxUtility.showDialogBox(1);
@@ -172,8 +165,8 @@ public class EmployeeController {
                 dialogBoxUtility.showDialogBox(8);
             }
 
-            resultSet = EmployeeHelper.getAllRecords();
-            populateTableData(resultSet);
+            tableData = EmployeeHelper.getAllRecords();
+            populateTableData(tableData);
 
         } catch (Exception e) {
             System.out.println("Error from controller class: " + e.getMessage());
@@ -201,12 +194,12 @@ public class EmployeeController {
             if(name.isBlank() || contact.isBlank() || email.isBlank()){
                 dialogBoxUtility.showDialogBox(7);
             } else if(updateRequired){
-                result = actions.updateEmployee(employeeId, name, contact, email);
+                result = actions.updateRecord(employeeId, name, contact, email);
 
                 if(result == 2) {
                     dialogBoxUtility.showDialogBox(2);
-                    resultSet = EmployeeHelper.getAllRecords();
-                    populateTableData(resultSet);
+                    tableData = EmployeeHelper.getAllRecords();
+                    populateTableData(tableData);
                 } else if(result == 0) {
                     dialogBoxUtility.showDialogBox(0);
                 } else{
@@ -225,17 +218,17 @@ public class EmployeeController {
 
     @FXML
     void onDelete(ActionEvent event) {
-        String deleteItemId = search_field.getText();
+        String deleteItemId = employee_id_field.getText();
         try{
-            int result = actions.deleteEmployee(deleteItemId);
+            int result = actions.deleteRecord(deleteItemId);
             if(result == 4) {
                 dialogBoxUtility.showDialogBox(4);
             } else{
                 dialogBoxUtility.showDialogBox(5);
             }
 
-            resultSet = EmployeeHelper.getAllRecords();
-            populateTableData(resultSet);
+            tableData = EmployeeHelper.getAllRecords();
+            populateTableData(tableData);
 
         } catch(Exception e) {
             System.out.println("Error " + e.getMessage());
@@ -248,22 +241,18 @@ public class EmployeeController {
     @FXML
     void onSearch(ActionEvent event) {
         String searchInput = search_field.getText().trim();
-        //System.out.println("Name: "+name+",TP: "+tp);
 
         try{
-            resultSet = actions.searchEmployee(searchInput);
-
-            if(resultSet.next()) {
-                employee_id_field.setText(resultSet.getString("employee_id"));
-                name_field.setText(resultSet.getString("employee_name"));
-                contact_no_field.setText(resultSet.getString("contact_no"));
-                email_field.setText(resultSet.getString("email"));
-            } else if(!resultSet.isBeforeFirst()) {
+            tableData = EmployeeHelper.getSearchedList(searchInput);
+            populateTableData(tableData);
+            if(tableData != null) {
+                employee_id_field.setText(tableData.get(0).getEmployeeId());
+                name_field.setText(tableData.get(0).getEmployeeName());
+                contact_no_field.setText(tableData.get(0).getContactNo());
+                email_field.setText(tableData.get(0).getEmail());
+            } else {
                 dialogBoxUtility.showDialogBox(3);
             }
-
-            ResultSet temp = EmployeeHelper.getSearchedList(searchInput);
-            populateTableData(temp);
 
         } catch (Exception e){
             System.out.println("Error");

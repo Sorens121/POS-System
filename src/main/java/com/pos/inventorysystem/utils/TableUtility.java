@@ -10,38 +10,14 @@ import java.sql.Statement;
 import java.util.function.Function;
 
 public class TableUtility {
-
-    //NO NEED THIS METHOD TABLE CHECK IS DONE FROM CONFIG FILE
-    /*
-    public static boolean checkTableExists(String tableName) throws SQLException, ClassNotFoundException{
-        Connection connection = null;
+    public static void createTable(String createTableQuery) throws SQLException {
         try{
-            connection = db.myConnection();
-            DatabaseMetaData metaData = connection.getMetaData();
-            ResultSet resultSet = metaData.getTables(null, null, tableName, null);
-            return resultSet.next();
-        } catch(SQLException | ClassNotFoundException e){
-            e.printStackTrace();
-        } finally {
-            if(connection != null){
-                try{
-                    connection.close();
-                } catch (SQLException e){
-                    e.printStackTrace();
-                }
-            }
-        }
-        return false;
-    }*/
-
-    public static void createTable(String createTableQuery) throws SQLException, ClassNotFoundException{
-        try{
-            Connection connection = db.myConnection();
+            Connection connection = db.establishConnection();
             Statement statement = connection.createStatement();
             statement.execute(createTableQuery);
             connection.close();
 
-        } catch(SQLException | ClassNotFoundException e){
+        } catch(SQLException e) {
             e.printStackTrace();
         }
     }

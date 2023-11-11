@@ -1,72 +1,149 @@
 package com.pos.inventorysystem.actions;
 
+import com.pos.inventorysystem.Model.Customer;
 import com.pos.inventorysystem.db.db;
 import com.pos.inventorysystem.helpers.ErrorMsgHelper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.Objects;
+import java.sql.*;
 
 public class CustomerActions {
 
-    private Statement s;
+    private Statement statement;
     private ResultSet resultSet = null;
     private String sql = null;
+    private ObservableList<Customer> data = null;
 
-    public ResultSet getAllCustomers() throws SQLException, ClassNotFoundException {
+
+    public ObservableList<Customer> getAllRecords() throws SQLException {
+        try {
+            return getAllCustomers();
+        } catch(SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    public ObservableList<Customer> getOneRecord(String id) throws SQLException {
+        try {
+            return getOneCustomer(id);
+        } catch(SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    public Integer createNewRecord(String customerId, String name, String contact, String email) throws SQLException {
+        try {
+            return createCustomer(customerId, name, contact, email);
+        } catch(SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    public Integer updateRecord(String customerId, String name, String contact, String email) throws SQLException {
+        try {
+            return updateCustomer(customerId, name, contact, email);
+        } catch(SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    public Integer deleteRecord(String id) throws SQLException {
+        try {
+            return deleteCustomer(id);
+        } catch(SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    public ObservableList<Customer> searchRecord(String searchInput) throws SQLException {
+        try {
+            return searchCustomer(searchInput);
+        } catch(SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    private ObservableList<Customer> getAllCustomers() throws SQLException {
+        Connection connection = db.establishConnection();
         sql = "SELECT * FROM customer";
-        try {
-            s = Objects.requireNonNull(db.myConnection()).createStatement();
-            resultSet = s.executeQuery(sql);
-            return resultSet;
-        } catch (SQLException | ClassNotFoundException e) {
-            System.out.println("Error while running query");
-            e.printStackTrace();
-            throw e;
+
+        if(connection != null) {
+            try {
+                statement = connection.createStatement();
+                resultSet = statement.executeQuery(sql);
+                data = convertData(resultSet);
+            } catch (SQLException e) {
+                System.out.println("Error while running query");
+                e.printStackTrace();
+                throw e;
+            } finally {
+                db.closeConnection(connection, statement, null, resultSet);
+            }
         }
 
+        return data;
     }
 
-    private ResultSet getOneCustomer(String customerId) throws SQLException, ClassNotFoundException {
+    private ObservableList<Customer> getOneCustomer(String customerId) throws SQLException {
+        Connection connection = db.establishConnection();
         sql = "SELECT * FROM customer WHERE customer_id = '"+customerId+"'";
-        try {
-            s = db.myConnection().createStatement();
-            resultSet = s.executeQuery(sql);
-            return resultSet;
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
+
+        if(connection != null) {
+            try {
+                statement = connection.createStatement();
+                resultSet = statement.executeQuery(sql);
+
+                data = convertData(resultSet);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                db.closeConnection(connection, statement, null, resultSet);
+            }
         }
+        return data;
     }
 
-    public Integer createCustomer(String customerId, String name, String contact, String email) throws SQLException, ClassNotFoundException {
-        int output = 0;
+    private Integer createCustomer(String customerId, String name, String contact, String email) throws SQLException {
+        Connection connection = db.establishConnection();
         sql = "INSERT INTO customer (customer_id, customer_name, contact_no, email) VALUES ('"+customerId+"', '"+name+"', '"+contact+"', '"+email+"')";
-        try{
-            s = db.myConnection().createStatement();
-            output = s.executeUpdate(sql);
-            return output;
-        } catch (SQLException e) {
-            System.out.println("Error while running query");
-            ErrorMsgHelper.catchError(String.valueOf(e.getErrorCode()));
-            throw e;
+        int output = -1;
+        if(connection != null) {
+            try {
+                statement = connection.createStatement();
+                output = statement.executeUpdate(sql);
+                return output;
+            } catch (SQLException e) {
+                System.out.println("Error while running query");
+                ErrorMsgHelper.catchError(String.valueOf(e.getErrorCode()));
+            } finally {
+                db.closeConnection(connection, statement, null, null);
+            }
+
         }
+        return output;
     }
 
-    public Integer updateCustomer(String customerId, String name, String contact, String email) throws SQLException, ClassNotFoundException {
+    private Integer updateCustomer(String customerId, String name, String contact, String email) throws SQLException {
+        Connection connection = db.establishConnection();
         String updateQuery = "UPDATE customer SET ";
-        int output = 0;
+        int output = -1, index = 0;
 
-        ResultSet oldValues = getOneCustomer(customerId);
+        ObservableList<Customer> oldValues = getOneCustomer(customerId);
 
         String oldName = null, oldEmail = null, state = null, oldContact = null;
 
-        while (oldValues.next()){
-            oldName = oldValues.getString("customer_name");
-            oldContact = oldValues.getString("contact_no");
-            oldEmail = oldValues.getString("email");
+        while (index < oldValues.size()){
+            oldName = oldValues.get(0).getCustomerName();
+            oldContact = oldValues.get(0).getContactNumber();
+            oldEmail = oldValues.get(0).getEmail();
+            index++;
         }
 
         // SCENARIOS 1
@@ -107,110 +184,146 @@ public class CustomerActions {
             state = "7";
         }
 
+        if(connection != null) {
+            PreparedStatement ps = connection.prepareStatement(updateQuery);
+            try {
+                if (state != null) {
+                    switch (state) {
+                        case "1":
+                            //NCE
+                            ps.setString(1, name);
+                            ps.setString(2, contact);
+                            ps.setString(3, email);
+                            ps.setString(4, customerId);
+                            break;
 
-        try(PreparedStatement ps = db.myConnection().prepareStatement(updateQuery)){
-            if(state != null){
-              switch (state) {
-                  case "1":
-                      //NCE
-                      ps.setString(1, name);
-                      ps.setString(2, contact);
-                      ps.setString(3, email);
-                      ps.setString(4, customerId);
-                      break;
+                        case "2":
+                            //NC
+                            ps.setString(1, name);
+                            ps.setString(2, contact);
+                            ps.setString(3, customerId);
+                            break;
 
-                  case "2":
-                      //NC
-                      ps.setString(1, name);
-                      ps.setString(2, contact);
-                      ps.setString(3, customerId);
-                      break;
+                        case "3":
+                            //NE
+                            ps.setString(1, name);
+                            ps.setString(2, email);
+                            ps.setString(3, customerId);
+                            break;
 
-                  case "3":
-                      //NE
-                      ps.setString(1, name);
-                      ps.setString(2, email);
-                      ps.setString(3, customerId);
-                      break;
+                        case "4":
+                            //CE
+                            ps.setString(1, contact);
+                            ps.setString(2, email);
+                            ps.setString(3, customerId);
+                            break;
 
-                  case "4":
-                      //CE
-                      ps.setString(1, contact);
-                      ps.setString(2, email);
-                      ps.setString(3, customerId);
-                      break;
+                        case "5":
+                            //N
+                            ps.setString(1, name);
+                            ps.setString(2, customerId);
+                            break;
 
-                  case "5":
-                      //N
-                      ps.setString(1,name);
-                      ps.setString(2,customerId);
-                      break;
+                        case "6":
+                            //C
+                            ps.setString(1, contact);
+                            ps.setString(2, customerId);
+                            break;
 
-                  case "6":
-                      //C
-                      ps.setString(1, contact);
-                      ps.setString(2, customerId);
-                      break;
+                        case "7":
+                            //E
+                            ps.setString(1, email);
+                            ps.setString(2, customerId);
+                            break;
 
-                  case "7":
-                      //E
-                      ps.setString(1, email);
-                      ps.setString(2, customerId);
-                      break;
+                        default:
+                            return null;
+                    }
+                }
+                output = ps.executeUpdate();
 
-                  default:
-                      return null;
-              }
+                if (output == 1) {
+                    return 2; // update success
+                } else {
+                    return 0; // error message
+                }
+            } catch (SQLException e) {
+                System.out.println("Error while running query");
+                e.printStackTrace();
+            } finally {
+                db.closeConnection(connection, null, ps, null);
             }
 
-            output = ps.executeUpdate();
-
-            if(output == 1){
-                return 2; // update success
-            } else {
-                return 0; // error message
-            }
-        } catch (SQLException | ClassNotFoundException e) {
-            System.out.println("Error while running query");
-            e.printStackTrace();
-            throw e;
         }
+        return output;
     }
 
-
-    public Integer deleteCustomer(String customerId) throws SQLException, ClassNotFoundException {
+    private Integer deleteCustomer(String customerId) throws SQLException {
+        Connection connection = db.establishConnection();
         sql = "DELETE FROM customer WHERE customer_id = '"+customerId+"'";
-        try {
-            s = Objects.requireNonNull(db.myConnection()).createStatement();
-            int output = s.executeUpdate(sql);
-            if(output == 1) {
-                return 4; // delete success
-            } else {
-                return 5; // delete error
+        int output = -1;
+
+        if(connection != null) {
+            try {
+                statement = connection.createStatement();
+                output = statement.executeUpdate(sql);
+
+                if (output == 1) {
+                    return 4; // delete success
+                } else {
+                    return 5; // delete error
+                }
+            } catch (SQLException e) {
+                System.out.println("Error while running query");
+                e.printStackTrace();
+            } finally {
+                db.closeConnection(connection, statement, null, null);
             }
-        } catch (SQLException | ClassNotFoundException e) {
-            System.out.println("Error while running query");
-            e.printStackTrace();
-            throw e;
         }
+        return output;
     }
 
-    public ResultSet searchCustomer(String searchInput) throws SQLException, ClassNotFoundException {
+    private ObservableList<Customer> searchCustomer(String searchInput) throws SQLException {
+        Connection connection = db.establishConnection();
         sql = "SELECT * FROM customer WHERE customer_name LIKE ? OR email LIKE ? OR contact_no = ?";
         String wildcard = "%" + searchInput + "%";
 
-        try{
-            PreparedStatement ps = db.myConnection().prepareStatement(sql);
-            ps.setString(1, wildcard);
-            ps.setString(2, wildcard);
-            ps.setString(3, searchInput);
+        if(connection != null) {
+            PreparedStatement ps = connection.prepareStatement(sql);
+            try {
+                ps.setString(1, wildcard);
+                ps.setString(2, wildcard);
+                ps.setString(3, searchInput);
 
-            resultSet = ps.executeQuery();
-            return resultSet;
-        } catch (SQLException | ClassNotFoundException e){
-            System.out.println("Error while running query");
+                resultSet = ps.executeQuery();
+                data = convertData(resultSet);
+
+            } catch (SQLException e) {
+                System.out.println("Error while running query");
+                e.printStackTrace();
+            } finally {
+                db.closeConnection(connection, null, ps, resultSet);
+            }
+        }
+        return data;
+    }
+
+    private static ObservableList<Customer> convertData(ResultSet resultSet) throws SQLException {
+        ObservableList<Customer> customerList = FXCollections.observableArrayList();
+        try {
+            while (resultSet.next()) {
+                Customer customer = new Customer();
+                customer.setCustomerId(resultSet.getString("customer_id"));
+                customer.setCustomerName(resultSet.getString("customer_name"));
+                customer.setContactNumber(resultSet.getString("contact_no"));
+                customer.setEmail(resultSet.getString("email"));
+                customerList.add(customer);
+            }
+
+        } catch (SQLException e) {
             e.printStackTrace();
             throw e;
         }
+        return customerList;
     }
 }

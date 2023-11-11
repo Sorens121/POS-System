@@ -1,68 +1,148 @@
 package com.pos.inventorysystem.actions;
 
+import com.pos.inventorysystem.Model.Employee;
 import com.pos.inventorysystem.db.db;
 import com.pos.inventorysystem.helpers.ErrorMsgHelper;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 public class EmployeeActions {
-    private Statement s;
+    private Statement statement;
     private ResultSet resultSet = null;
     private String query = null;
-    public ResultSet getAllEmployees() throws SQLException, ClassNotFoundException{
+
+    private ObservableList<Employee> data = null;
+
+    public ObservableList<Employee> getAllRecords() throws SQLException {
+        try {
+            return getAllEmployees();
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    public ObservableList<Employee> getOneRecord(String id) throws SQLException {
+        try {
+            return getOneEmployee(id);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    public Integer createNewRecord(String employeeId, String name, String contact, String email) throws SQLException {
+        try {
+            return createNewEmployee(employeeId, name, contact, email);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    public Integer updateRecord(String employeeId, String name, String contact, String email) throws SQLException {
+        try {
+            return updateEmployee(employeeId, name, contact, email);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    public Integer deleteRecord(String id) throws SQLException {
+        try {
+            return deleteEmployee(id);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    public ObservableList<Employee> searchRecord(String searchInput) throws SQLException {
+        try {
+            return searchEmployee(searchInput);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            throw e;
+        }
+    }
+
+    private ObservableList<Employee> getAllEmployees() throws SQLException {
+        Connection connection = db.establishConnection();
         query = "SELECT * FROM employee";
-        try{
-            s = db.myConnection().createStatement();
-            resultSet = s.executeQuery(query);
-            return resultSet;
-        } catch (SQLException | ClassNotFoundException e){
-            System.out.println("Error while running the query: "+ e.getMessage());
-            e.printStackTrace();
-            throw e;
+
+        if(connection != null) {
+            try {
+                statement = connection.createStatement();
+                resultSet = statement.executeQuery(query);
+                data = convertData(resultSet);
+            } catch (SQLException e) {
+                System.out.println("Error while running the query: " + e.getMessage());
+                e.printStackTrace();
+            } finally {
+                db.closeConnection(connection, statement, null, resultSet);
+            }
+
         }
+        return data;
     }
 
-    public ResultSet getOneEmployee(String employeeId) {
+    private ObservableList<Employee> getOneEmployee(String employeeId) throws SQLException {
+        Connection connection = db.establishConnection();
         query = "SELECT * FROM employee WHERE employee_id = '"+employeeId+"'";
-        try{
-            s = db.myConnection().createStatement();
-            resultSet = s.executeQuery(query);
-            return resultSet;
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-            return null;
+
+        if(connection != null) {
+            try {
+                statement = connection.createStatement();
+                resultSet = statement.executeQuery(query);
+                data = convertData(resultSet);
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } finally {
+                db.closeConnection(connection, statement, null, resultSet);
+            }
         }
+
+        return data;
     }
 
-    public Integer createNewEmployee(String employeeId, String name, String contact, String email) throws ClassNotFoundException, SQLException{
-        int output = 0;
+    private Integer createNewEmployee(String employeeId, String name, String contact, String email) throws SQLException {
+        Connection connection = db.establishConnection();
         query = "INSERT INTO employee (employee_id, employee_name, contact_no, email) VALUES ('"+employeeId+"', '"+name+"', '"+contact+"', '"+email+"')";
-        try{
-            s = db.myConnection().createStatement();
-            output = s.executeUpdate(query);
-            return output;
-        } catch (SQLException e){
-            System.out.println("Error while running the query: "+ e.getMessage());
-            ErrorMsgHelper.catchError(String.valueOf(e.getErrorCode()));
-            throw e;
+        int output = -1;
+
+        if(connection != null) {
+            try {
+                statement = connection.createStatement();
+                output = statement.executeUpdate(query);
+                return output;
+            } catch (SQLException e) {
+                System.out.println("Error while running the query: " + e.getMessage());
+                ErrorMsgHelper.catchError(String.valueOf(e.getErrorCode()));
+            } finally {
+                db.closeConnection(connection, statement, null, null);
+            }
         }
+
+        return output;
     }
 
-    public Integer updateEmployee(String employeeId, String name, String contact, String email) throws SQLException, ClassNotFoundException{
+    private Integer updateEmployee(String employeeId, String name, String contact, String email) throws SQLException {
+        Connection connection = db.establishConnection();
         String updateQuery = "UPDATE employee SET ";
-        int output = 0;
+        int output = -1, index = 0;
 
-        ResultSet oldValues = getOneEmployee(employeeId);
+        ObservableList<Employee> oldValues = getOneEmployee(employeeId);
 
         String oldName = null, oldContact = null, oldEmail = null, state = null;
 
-        while(oldValues.next()) {
-            oldName = oldValues.getString("employee_name");
-            oldContact = oldValues.getString("contact_no");
-            oldEmail = oldValues.getString("email");
+        while(index < oldValues.size()) {
+            oldName = oldValues.get(0).getEmployeeName();
+            oldContact = oldValues.get(0).getContactNo();
+            oldEmail = oldValues.get(0).getEmail();
+            index++;
         }
 
         // SCENARIOS 1
@@ -102,102 +182,143 @@ public class EmployeeActions {
             updateQuery += "email = ? WHERE employee_id = ?";
             state = "7";
         }
-        try(PreparedStatement ps = db.myConnection().prepareStatement(updateQuery)){
-            if(state != null){
-                switch (state){
-                    case "1":
-                        ps.setString(1, name);
-                        ps.setString(2, contact);
-                        ps.setString(3, email);
-                        ps.setString(4, employeeId);
-                        break;
-                    case "2":
-                        ps.setString(1, name);
-                        ps.setString(2, contact);
-                        ps.setString(3, employeeId);
-                        break;
 
-                    case "3":
-                        ps.setString(1, name);
-                        ps.setString(2, email);
-                        ps.setString(4, employeeId);
-                        break;
+        if(connection != null) {
+            PreparedStatement ps = connection.prepareStatement(updateQuery);
+            try {
+                if (state != null) {
+                    switch (state) {
+                        case "1":
+                            ps.setString(1, name);
+                            ps.setString(2, contact);
+                            ps.setString(3, email);
+                            ps.setString(4, employeeId);
+                            break;
+                        case "2":
+                            ps.setString(1, name);
+                            ps.setString(2, contact);
+                            ps.setString(3, employeeId);
+                            break;
 
-                    case "4":
-                        ps.setString(1, contact);
-                        ps.setString(2, email);
-                        ps.setString(3, employeeId);
-                        break;
+                        case "3":
+                            ps.setString(1, name);
+                            ps.setString(2, email);
+                            ps.setString(4, employeeId);
+                            break;
 
-                    case "5":
-                        ps.setString(1, name);
-                        ps.setString(2, employeeId);
-                        break;
+                        case "4":
+                            ps.setString(1, contact);
+                            ps.setString(2, email);
+                            ps.setString(3, employeeId);
+                            break;
 
-                    case "6":
-                        ps.setString(1, contact);
-                        ps.setString(2, employeeId);
-                        break;
+                        case "5":
+                            ps.setString(1, name);
+                            ps.setString(2, employeeId);
+                            break;
 
-                    case "7":
-                        ps.setString(1, email);
-                        ps.setString(2, employeeId);
-                        break;
+                        case "6":
+                            ps.setString(1, contact);
+                            ps.setString(2, employeeId);
+                            break;
 
-                    default:
-                        return null;
+                        case "7":
+                            ps.setString(1, email);
+                            ps.setString(2, employeeId);
+                            break;
+
+                        default:
+                            return null;
+                    }
                 }
-            }
 
-            output = ps.executeUpdate();
+                output = ps.executeUpdate();
 
-            if(output == 1){
-                return 2; // update message
-            } else {
-                return 0; // failed update message
+                if (output == 1) {
+                    return 2; // update message
+                } else {
+                    return 0; // failed update message
+                }
+
+            } catch (SQLException e) {
+                System.out.println("Error while running the query: " + e.getMessage());
+                ErrorMsgHelper.catchError("Error while running the query: " + e.getErrorCode());
+            } finally {
+                db.closeConnection(connection, null, ps, null);
             }
-        } catch (SQLException e){
-            System.out.println("Error while running the query: "+ e.getMessage());
-            ErrorMsgHelper.catchError("Error while running the query: " + e.getErrorCode());
-            throw e;
         }
+
+        return output;
     }
 
-
-    public Integer deleteEmployee(String employeeId) throws ClassNotFoundException, SQLException {
+    private Integer deleteEmployee(String employeeId) throws SQLException {
+        Connection connection = db.establishConnection();
         query = "DELETE FROM employee WHERE employee_id = '"+employeeId+"'";
-        try{
-            s = db.myConnection().createStatement();
-            int output = s.executeUpdate(query);
-            if(output == 1){
-                return 4; // delete success
-            } else {
-                return 5; // failed delete
+        int output = -1;
+
+        if(connection != null) {
+            try {
+                statement = connection.createStatement();
+                output = statement.executeUpdate(query);
+
+                if (output == 1) {
+                    return 4; // delete success
+                } else {
+                    return 5; // failed delete
+                }
+            } catch (SQLException e) {
+                System.out.println("Error while running the query: " + e.getMessage());
+                ErrorMsgHelper.catchError("Error while running the query: " + e.getErrorCode());
+            } finally {
+                db.closeConnection(connection, statement, null, null);
             }
-        } catch(SQLException e) {
-            System.out.println("Error while running the query: "+ e.getMessage());
-            ErrorMsgHelper.catchError("Error while running the query: " + e.getErrorCode());
-            throw e;
         }
+
+        return output;
     }
 
-    public ResultSet searchEmployee(String searchInput) throws SQLException, ClassNotFoundException {
+    private ObservableList<Employee> searchEmployee(String searchInput) throws SQLException {
+        Connection connection = db.establishConnection();
         query = "SELECT * FROM employee WHERE employee_name LIKE ? OR email LIKE ? OR contact_no LIKE ? OR employee_id = ?";
         String wildcard = "%" + searchInput + "%";
 
-        try{
-            PreparedStatement preparedStatement = db.myConnection().prepareStatement(query);
-            preparedStatement.setString(1, wildcard);
-            preparedStatement.setString(2, wildcard);
-            preparedStatement.setString(3, wildcard);
-            preparedStatement.setString(4, searchInput);
+        if (connection != null) {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            try {
+                preparedStatement.setString(1, wildcard);
+                preparedStatement.setString(2, wildcard);
+                preparedStatement.setString(3, wildcard);
+                preparedStatement.setString(4, searchInput);
 
-            resultSet = preparedStatement.executeQuery();
-            return resultSet;
-        } catch (SQLException | ClassNotFoundException e) {
-            System.out.println("Error while running the query");
+                resultSet = preparedStatement.executeQuery();
+                data = convertData(resultSet);
+            } catch (SQLException e) {
+                System.out.println("Error while running the query");
+                e.printStackTrace();
+            } finally {
+                db.closeConnection(connection, null, preparedStatement, resultSet);
+            }
+        }
+        return data;
+    }
+
+    private static ObservableList<Employee> convertData(ResultSet resultSet) throws SQLException {
+        ObservableList<Employee> employeeList = FXCollections.observableArrayList();
+        try {
+            while(resultSet.next()) {
+                Employee employee = new Employee();
+                employee.setEmployeeId(resultSet.getString("employee_id"));
+                employee.setEmployeeName(resultSet.getString("employee_name"));
+                employee.setContactNo(resultSet.getString("contact_no"));
+                employee.setEmail(resultSet.getString("email"));
+
+                employeeList.add(employee);
+            }
+        } catch (SQLException e) {
             e.printStackTrace();
             throw e;
         }
+
+        return employeeList;
     }
 }

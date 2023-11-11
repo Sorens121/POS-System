@@ -1,5 +1,6 @@
 package com.pos.inventorysystem;
 
+import com.pos.inventorysystem.controllers.InvoiceController;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -9,10 +10,9 @@ import javafx.scene.control.Alert;
 import javafx.stage.Stage;
 
 import java.io.File;
-import java.util.Objects;
 
 public class Main extends Application {
-
+    //private static Stage primaryStage;
     public static boolean configFileExists() {
         String configFilePath = "C:/Users/TROJAN HORSE/Java Project/POS Inventory System/src/main/resources/config.properties";;
         File configFile = new File(configFilePath);
@@ -21,7 +21,7 @@ public class Main extends Application {
     }
 
     @Override
-    public void start(Stage stage) throws Exception {
+    public void start(Stage primaryStage) throws Exception {
         //check if the config file exists
         if(!configFileExists()){
             Platform.runLater(() -> showErrorDialog("Configuration file not found.", "Please make sure that config file is present."));
@@ -29,11 +29,13 @@ public class Main extends Application {
         }
 
         // Initializing and starting the javafx application here
-        Parent root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("home.fxml")));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("home.fxml"));
+        Parent root = loader.load();
+
         Scene scene = new Scene(root, 1200, 800);
-        stage.setTitle("POS System");
-        stage.setScene(scene);
-        stage.show();
+        primaryStage.setTitle("POS System");
+        primaryStage.setScene(scene);
+        primaryStage.show();
     }
 
     // TODO: 05-09-2023  Need to create a splash screen while the application searches for config.properties file

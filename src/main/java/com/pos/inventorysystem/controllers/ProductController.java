@@ -10,6 +10,7 @@ import com.pos.inventorysystem.utils.TableUtility;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -17,6 +18,8 @@ import javafx.scene.Scene;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -47,11 +50,9 @@ public class ProductController {
     @FXML
     private StackPane tableArea;
 
+    private ObservableList<Product> tableData = null;
 
-    private ObservableList<Product> products = null;
-    private ResultSet resultSet = null;
-
-    private static final String CREATE_TABLE_QUERY = "CREATE TABLE product (barcode VARCHAR(12) NOT NULL, product_name VARCHAR(45), price VARCHAR(5) DEFAULT 0, quantity VARCHAR(5) DEFAULT 0, supplier_id VARCHAR(10) DEFAULT NULL, PRIMARY KEY(barcode), UNIQUE (barcode))";
+    private static final String CREATE_TABLE_QUERY = "CREATE TABLE product (barcode VARCHAR(12) NOT NULL, product_name VARCHAR(45), price VARCHAR(5) DEFAULT 0, quantity INT(5) DEFAULT 0, supplier_id VARCHAR(10) DEFAULT NULL, PRIMARY KEY(barcode), UNIQUE (barcode))";
 
     private final TableView<Product> productTable = new TableView<>();
 
@@ -59,7 +60,7 @@ public class ProductController {
     ProductActions actions = new ProductActions();
 
     @FXML
-    private void initialize() throws ClassNotFoundException, SQLException {
+    private void initialize() throws SQLException {
         ConfigFileManager configFileManager = new ConfigFileManager();
         try{
             //check if table exist
@@ -72,7 +73,7 @@ public class ProductController {
             } else {
                 System.out.println("Table already exist");
             }
-        } catch(SQLException | ClassNotFoundException e) {
+        } catch(SQLException e) {
             System.out.println("Database error occurred: " + e.getMessage());
         }
 
@@ -80,9 +81,9 @@ public class ProductController {
         barcode_field.setStyle("-fx-prompt-text-fill: #1a1aff;");
 
         //setting up products table
-        resultSet = ProductHelper.getAllRecords();
-        initializeTable(resultSet);
-        populateTableData(resultSet);
+        tableData = ProductHelper.getAllRecords();
+        initializeTable(tableData);
+        populateTableData(tableData);
 
         //System.out.print("Table data: " + product_name + barcode + price + quantity + supplier_id);
 
@@ -94,22 +95,37 @@ public class ProductController {
                 barcode_field.setEditable(false);
                 barcode_field.setStyle("-fx-text-fill: #1a1aff; -fx-background-color: #f4f4f4; -fx-border-width: 1px; -fx-border-color: #ccc;");
                 price_field.setText(newValue.getPrice());
-                quantity_field.setText(newValue.getQuantity());
+                quantity_field.setText(String.valueOf(newValue.getQuantity()));
                 supplierId_field.setText(newValue.getSupplierId());
+            }
+        });
+
+        userInput.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent keyEvent) {
+                String searchString = userInput.getText().trim();
+                if(keyEvent.getCode() == KeyCode.ENTER) {
+                    try {
+                        tableData = ProductHelper.getSearchedList(searchString);
+                        populateTableData(tableData);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             }
         });
     }
 
     @SuppressWarnings("unchecked")
-    private void initializeTable(ResultSet resultSet) {
+    private void initializeTable(ObservableList<Product> data) {
         TableColumn<Product, Integer> serial_no = new TableColumn<>("Serial No".toUpperCase());
         TableColumn<Product, String> product_id= TableUtility.createTableColumn("Barcode".toUpperCase(), Product::getBarcode);
         TableColumn<Product, String> product_name = TableUtility.createTableColumn("product name".toUpperCase(), Product::getProductName);
         TableColumn<Product, String> price = TableUtility.createTableColumn("price".toUpperCase(), Product::getPrice);
-        TableColumn<Product, String> quantity = TableUtility.createTableColumn("quantity".toUpperCase(), Product::getQuantity);
+        TableColumn<Product, Integer> quantity = TableUtility.createTableColumn("quantity".toUpperCase(), Product::getQuantity);
         TableColumn<Product, String> supplier_id = TableUtility.createTableColumn("supplier id".toUpperCase(), Product::getSupplierId);
 
-        if(resultSet != null) {
+        if(data != null) {
             serial_no.setCellValueFactory(cellData -> new ReadOnlyObjectWrapper<>(productTable.getItems().indexOf(cellData.getValue()) + 1));
         }
 
@@ -125,13 +141,9 @@ public class ProductController {
     }
 
 
-    private void populateTableData(ResultSet resultSet) throws SQLException, ClassNotFoundException{
-        try{
-            ObservableList<Product> products = ProductHelper.getAllProductRecords(resultSet);
-            productTable.setItems(products);
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+    private void populateTableData(ObservableList<Product> data) {
+        // setting the table data
+        productTable.setItems(data);
     }
 
     private void clearFields() {
@@ -159,7 +171,7 @@ public class ProductController {
             if(name.isBlank() || barcode.isBlank() || supplierId.isBlank() || price.isBlank() || quantity.isBlank()){
                 dialogBoxUtility.showDialogBox(7);
             } else if (checkDuplicate) {
-                int result = actions.addNewProduct(name, barcode, price, quantity, supplierId);
+                int result = actions.createNewRecord(name, barcode, price, quantity, supplierId);
                 if (result == 1) {
                     dialogBoxUtility.showDialogBox(1);
                 } else {
@@ -169,34 +181,31 @@ public class ProductController {
                 dialogBoxUtility.showDialogBox(8);
             }
 
-            resultSet = ProductHelper.getAllRecords();
-            populateTableData(resultSet);
+            tableData = ProductHelper.getAllRecords();
+            populateTableData(tableData);
         } catch (Exception e) {
             dialogBoxUtility.showDialogBox(7);
         }
         clearFields();
     }
 
-
     @FXML
     void onSearch(ActionEvent event) {
         String searchInput = userInput.getText();
 
         try{
-            resultSet = actions.searchProduct(searchInput);
+            tableData = ProductHelper.getSearchedList(searchInput);
+            populateTableData(tableData);
 
-            if(resultSet.next()) {
-                p_name.setText(resultSet.getString("product_name"));
-                barcode_field.setText(resultSet.getString("barcode"));
-                price_field.setText(resultSet.getString("price"));
-                quantity_field.setText(resultSet.getString("quantity"));
-                supplierId_field.setText(resultSet.getString("supplier_id"));
-            } else if(!resultSet.isBeforeFirst()) {
+            if(tableData != null) {
+                p_name.setText(tableData.get(0).getProductName());
+                barcode_field.setText(tableData.get(0).getBarcode());
+                price_field.setText(tableData.get(0).getPrice());
+                quantity_field.setText(String.valueOf(tableData.get(0).getQuantity()));
+                supplierId_field.setText(tableData.get(0).getSupplierId());
+            } else {
                 dialogBoxUtility.showDialogBox(3);
             }
-
-            ResultSet temp = ProductHelper.getSearchedList(searchInput);
-            populateTableData(temp);
 
         } catch (Exception e){
             e.printStackTrace();
@@ -219,16 +228,18 @@ public class ProductController {
 
         try{
             boolean updateRequired = GenericSQLHelper.shouldUpdateRow(query, barcode, params);
+            System.out.println("boolean " + updateRequired);
+
             int result = 0;
             if(name.isBlank() || barcode.isBlank() || supplierId.isBlank()){
                 dialogBoxUtility.showDialogBox(7);
             } else if(updateRequired){
-                result = actions.updateProduct(barcode, name, price, quantity, supplierId);
+                result = actions.updateRecord(barcode, name, price, quantity, supplierId);
 
                 if (result == 2) {
                     dialogBoxUtility.showDialogBox(2);
-                    resultSet = ProductHelper.getAllRecords();
-                    populateTableData(resultSet);
+                    tableData = ProductHelper.getAllRecords();
+                    populateTableData(tableData);
                 } else if (result == 0) {
                     dialogBoxUtility.showDialogBox(0);
                 } else {
@@ -237,7 +248,7 @@ public class ProductController {
             } else {
                 dialogBoxUtility.showDialogBox(8);
             }
-        } catch(SQLException | ClassNotFoundException | IOException e) {
+        } catch(SQLException | IOException e) {
             e.printStackTrace();
         }
         clearFields();
@@ -247,15 +258,15 @@ public class ProductController {
     void onDelete(ActionEvent event) throws Exception{
         String deleteItem = barcode_field.getText();
         try{
-            int result = actions.deleteProduct(deleteItem);
+            int result = actions.deleteRecord(deleteItem);
             if(result == 4){
                 dialogBoxUtility.showDialogBox(4);
             } else {
                 dialogBoxUtility.showDialogBox(5);
             }
 
-            resultSet = ProductHelper.getAllRecords();
-            populateTableData(resultSet);
+            tableData = ProductHelper.getAllRecords();
+            populateTableData(tableData);
 
         } catch(Exception e) {
             System.out.println("Error");

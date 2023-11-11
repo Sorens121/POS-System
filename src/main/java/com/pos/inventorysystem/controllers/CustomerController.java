@@ -17,7 +17,6 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -41,7 +40,7 @@ public class CustomerController {
     @FXML
     private StackPane tableArea;
 
-    private ResultSet resultSet = null;
+    private ObservableList<Customer> tableData = null;
 
     DialogBoxUtility dialogBoxUtility = new DialogBoxUtility();
     CustomerActions actions = new CustomerActions();
@@ -51,7 +50,7 @@ public class CustomerController {
     private final TableView<Customer> customerTable = new TableView<>();
 
      @FXML
-     private void initialize() throws SQLException, ClassNotFoundException{
+     private void initialize() throws SQLException {
          ConfigFileManager configFileManager = new ConfigFileManager();
 
          try{
@@ -68,7 +67,7 @@ public class CustomerController {
                  System.out.println("Table already exist");
              }
 
-         } catch (SQLException | ClassNotFoundException e){
+         } catch (SQLException e){
              System.out.println("Database error occurred: " + e.getMessage());
          }
 
@@ -77,16 +76,16 @@ public class CustomerController {
          customer_id_field.setPromptText("This field is auto generated");
          customer_id_field.setStyle("-fx-prompt-text-fill: #1a1aff; -fx-background-color: #f4f4f4; -fx-border-width: 1px; -fx-border-color: #ccc;");
 
-         resultSet = CustomerHelper.getAllRecords();
-         initializeTable(resultSet);
-         populateTableData(resultSet);
+         tableData = CustomerHelper.getAllRecords();
+         initializeTable(tableData);
+         populateTableData(tableData);
 
          //click on the items of the table and the data is displayed is the respective text fields
+
          customerTable.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
              if(newValue != null){
-                 //search_id.setText(newValue.getCustomerId());
-                 customer_id_field.setText(newValue.getCustomerId());
                  // setting customer id field as uneditable filed
+                 customer_id_field.setText(newValue.getCustomerId());
                  customer_id_field.setEditable(false);
                  customer_name_field.setText(newValue.getCustomerName());
                  contact_no_field.setText(newValue.getContactNumber());
@@ -97,14 +96,14 @@ public class CustomerController {
 
      // initializing the table for first time i.e. it is called only once
     @SuppressWarnings("unchecked")
-     public void initializeTable(ResultSet resultSet) {
+     public void initializeTable(ObservableList<Customer> data) {
         TableColumn<Customer, Integer> serial_no = new TableColumn<>("Serial No".toUpperCase());
         TableColumn<Customer, String> customer_id = TableUtility.createTableColumn("Customer Id".toUpperCase(), Customer::getCustomerId);
         TableColumn<Customer, String> customer_name = TableUtility.createTableColumn("customer name".toUpperCase(), Customer::getCustomerName);
         TableColumn<Customer, String> contact = TableUtility.createTableColumn("contact".toUpperCase(), Customer::getContactNumber);
         TableColumn<Customer, String> email = TableUtility.createTableColumn("email".toUpperCase(), Customer::getEmail);
 
-        if(resultSet!= null){
+        if(data!= null){
             serial_no.setCellValueFactory(column -> new ReadOnlyObjectWrapper<>(customerTable.getItems().indexOf(column.getValue()) + 1));
         }
 
@@ -119,14 +118,9 @@ public class CustomerController {
      }
 
      // populate table with data
-    public void populateTableData(ResultSet resultSet) throws SQLException, ClassNotFoundException {
+    public void populateTableData(ObservableList<Customer> data) {
         // populate table with data
-        try {
-            ObservableList<Customer> customers = CustomerHelper.getAllCustomerRecords(resultSet);
-            customerTable.setItems(customers);
-        } catch (ClassNotFoundException | SQLException e) {
-            e.printStackTrace();
-        }
+        customerTable.setItems(data);
     }
 
     @FXML
@@ -162,7 +156,7 @@ public class CustomerController {
             if (name.isBlank() || contact.isBlank() || email.isBlank()) {
                 dialogBoxUtility.showDialogBox(7);
             } else if (checkDuplicate) {// if false then only insert new customer
-                int result = actions.createCustomer(id, name, contact, email);
+                int result = actions.createNewRecord(id, name, contact, email);
 
                 if (result == 1) {
                     dialogBoxUtility.showDialogBox(1);
@@ -173,8 +167,8 @@ public class CustomerController {
                 dialogBoxUtility.showDialogBox(8);
             }
 
-            resultSet = CustomerHelper.getAllRecords();
-            populateTableData(resultSet);
+            tableData = actions.getAllRecords();
+            populateTableData(tableData);
 
         } catch (Exception e) {
             System.out.println("Error from mySql server " + e.getMessage());
@@ -203,12 +197,12 @@ public class CustomerController {
                 dialogBoxUtility.showDialogBox(7);
             } else if(updateRequired) {
                 // need to check for unchanged values and null before running the queries
-                result = actions.updateCustomer(customerId, name, contact, email);
+                result = actions.updateRecord(customerId, name, contact, email);
 
                 if (result == 2) {
                     dialogBoxUtility.showDialogBox(2);
-                    resultSet = CustomerHelper.getAllRecords();
-                    populateTableData(resultSet);
+                    tableData = CustomerHelper.getAllRecords();
+                    populateTableData(tableData);
                 } else if(result == 0){
                     dialogBoxUtility.showDialogBox(0);
                 } else {
@@ -230,15 +224,15 @@ public class CustomerController {
     void onDelete(ActionEvent event) throws Exception{
         String deleteItemId = customer_id_field.getText();
         try{
-            int result = actions.deleteCustomer(deleteItemId);
+            int result = actions.deleteRecord(deleteItemId);
             if(result == 4) {
                 dialogBoxUtility.showDialogBox(4);
             } else{
                 dialogBoxUtility.showDialogBox(5);
             }
 
-            resultSet = CustomerHelper.getAllRecords();
-            populateTableData(resultSet);
+            tableData = CustomerHelper.getAllRecords();
+            populateTableData(tableData);
 
         } catch(Exception e) {
             System.out.println("Error");
@@ -252,20 +246,16 @@ public class CustomerController {
         String searchInput = search_id.getText();
 
         try{
-            resultSet = actions.searchCustomer(searchInput);
-
-            if(resultSet.next()) {
-                customer_id_field.setText(resultSet.getString("customer_id"));
-                customer_name_field.setText(resultSet.getString("customer_name"));
-                contact_no_field.setText(resultSet.getString("contact_no"));
-                email_field.setText(resultSet.getString("email"));
-            } else if(!resultSet.isBeforeFirst()) {
+            tableData = CustomerHelper.getSearchedList(searchInput);
+            populateTableData(tableData);
+            if(tableData != null) {
+                customer_id_field.setText(tableData.get(0).getCustomerId());
+                customer_name_field.setText(tableData.get(0).getCustomerName());
+                contact_no_field.setText(tableData.get(0).getContactNumber());
+                email_field.setText(tableData.get(0).getEmail());
+            } else {
                 dialogBoxUtility.showDialogBox(3);
             }
-
-            ResultSet temp = CustomerHelper.getSearchedList(searchInput);
-            populateTableData(temp);
-
         } catch (Exception e){
             System.out.println("Error");
             e.printStackTrace();

@@ -7,14 +7,14 @@ public class Product {
     private final SimpleStringProperty productName;
     private final SimpleStringProperty barcode;
     private final SimpleStringProperty price;
-    private final SimpleStringProperty quantity;
+    private final SimpleIntegerProperty quantity;
     private final SimpleStringProperty supplierId;
 
     public Product() {
         this.productName = new SimpleStringProperty();
         this.barcode = new SimpleStringProperty();
         this.price = new SimpleStringProperty();
-        this.quantity = new SimpleStringProperty();
+        this.quantity = new SimpleIntegerProperty();
         this.supplierId = new SimpleStringProperty();
     }
 
@@ -54,15 +54,15 @@ public class Product {
         this.price.set(price);
     }
 
-    public String getQuantity() {
+    public int getQuantity() {
         return quantity.get();
     }
 
-    public SimpleStringProperty getQuantityProperty() {
+    public SimpleIntegerProperty getQuantityProperty() {
         return quantity;
     }
 
-    public void setQuantity(String quantity) {
+    public void setQuantity(int quantity) {
         this.quantity.set(quantity);
     }
 

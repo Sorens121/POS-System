@@ -4,8 +4,10 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
+import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.layout.Pane;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.net.URL;
@@ -48,9 +50,17 @@ public class HomeController implements Initializable {
 
     @FXML
     void OnInvoiceClick(ActionEvent event) throws IOException {
-        root = FXMLLoader.load(Objects.requireNonNull(getClass().getResource("/com/pos/inventorysystem/invoice.fxml")));
+        FXMLLoader loader =  new FXMLLoader(getClass().getResource("/com/pos/inventorysystem/invoice.fxml"));
+        root = loader.load();
         contentArea.getChildren().removeAll();
         contentArea.getChildren().setAll(root);
+
+        // method to get the stage to implement modality feature
+        Node node = root.getScene().getRoot();
+        Stage mainStage = (Stage) node.getScene().getWindow();
+        InvoiceController invoiceController = loader.getController();
+        invoiceController.setMainStage(mainStage);
+
     }
 
     @FXML
